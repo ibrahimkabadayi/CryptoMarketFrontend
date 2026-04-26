@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import apiClient from './api/axios';
+import { marketApi } from './api/market';
+import type { Coin } from './types/market';
 
-const coins = ref([]);
+const coins = ref<Coin[]>([]);
 const isLoading = ref(true);
 
 onMounted(async () => {
   try {
-    const response = await apiClient.get('/api/Market/get_all_coins');
-    coins.value = response.data;
-    console.log("Başarılı! Gelen Veri:", response.data);
+    coins.value = await marketApi.getAllCoins();
   } catch (error) {
-    console.error("Coinler çekilirken hata oluştu:", error);
+    console.error("Veriler çekilemedi:", error);
   } finally {
     isLoading.value = false;
   }
@@ -19,27 +18,107 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
-    <h1>Kripto Piyasası Bağlantı Testi</h1>
+  <main class="dashboard">
+    <h1>Canlı Kripto Piyasası</h1>
 
-    <p v-if="isLoading">Backend'den veriler bekleniyor...</p>
+    <div v-if="isLoading" class="loading">
+      Piyasa verileri yükleniyor...
+    </div>
 
-    <pre v-else>{{ coins }}</pre>
-  </div>
+    <div v-else class="coin-grid">
+      <div v-for="coin in coins" :key="coin.symbol" class="coin-card">
+        <div class="coin-header">
+          <h2>{{ coin.name }}</h2>
+          <span class="symbol">{{ coin.symbol }}</span>
+        </div>
+        <div class="coin-price">
+          ${{ coin.price }}
+        </div>
+        <div class="coin-marketcap">
+          Hacim: ${{ coin.market_cap }}
+        </div>
+      </div>
+    </div>
+  </main>
 </template>
 
-<style>
+<style scoped>
 
 body {
-  font-family: sans-serif;
-  background-color: #1e1e1e;
-  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #121212;
+  color: #e0e0e0;
+  margin: 0;
   padding: 2rem;
 }
-pre {
-  background-color: #2d2d2d;
-  padding: 1rem;
-  border-radius: 8px;
-  overflow-x: auto;
+
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
 }
+
+h1 {
+  color: #fff;
+  border-bottom: 2px solid #333;
+  padding-bottom: 10px;
+}
+
+.coin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.coin-card {
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 1.5rem;
+  transition: transform 0.2s;
+}
+
+.coin-card:hover {
+  transform: translateY(-5px);
+  border-color: #f3ba2f; /* Binance sarısı detayı */
+}
+
+.coin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1rem;
+}
+
+.coin-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.symbol {
+  background-color: #333;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+.coin-price {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #4caf50;
+  margin-bottom: 0.5rem;
+}
+
+.coin-marketcap {
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.loading {
+  font-size: 1.2rem;
+  color: #f3ba2f;
+  margin-top: 2rem;
+}
+
 </style>

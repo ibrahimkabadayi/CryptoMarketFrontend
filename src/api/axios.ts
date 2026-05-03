@@ -5,23 +5,34 @@ const apiClient = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
-    //timeout: 5000
+    timeout: 10000
 });
 
 apiClient.interceptors.request.use(
-    (config) => {
+    (config) =>
+    {
+        const token = localStorage.getItem('token');
+
+        if (token && config.headers)
+        {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+
         return config;
     },
-    (error) => {
+    (error) =>
+    {
         return Promise.reject(error);
     }
 )
 
 apiClient.interceptors.response.use(
-    (response) => {
+    (response) =>
+    {
         return response;
     },
-    (error) => {
+    (error) =>
+    {
         console.error("Caught API error:", error.response?.status);
         return Promise.reject(error);
     }

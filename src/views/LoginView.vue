@@ -30,8 +30,7 @@ const handleLogin = async () => {
 
     localStorage.setItem('token', response.token);
 
-    // TODO: Redirect the user to an authenticated page (e.g., Dashboard or Market)
-    // router.push('/market');
+    await router.push('/market');
   }
   catch (error:any)
   {

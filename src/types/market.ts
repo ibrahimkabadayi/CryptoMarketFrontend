@@ -1,6 +1,7 @@
-export interface Coin{
+export interface Coin
+{
     name: string;
     symbol: string;
-    price: number;
-    market_cap: number;
+    currentPrice: number;
+    marketCap: number;
 }

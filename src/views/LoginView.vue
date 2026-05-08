@@ -52,29 +52,23 @@ const handleLogin = async () => {
 
     <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-700">
 
-      <!-- Header Section -->
       <div class="text-center mb-8">
         <h1 class="text-3xl font-bold text-white mb-2">CryptoMarket</h1>
         <p class="text-gray-400">Sign in to your account</p>
       </div>
 
-      <!-- Error Message Box -->
-      <!-- 'v-if' ensures this div only renders when 'errorMessage' is not empty -->
       <div
           v-if="errorMessage"
           class="mb-6 p-4 bg-red-900/50 border border-red-500 rounded-lg text-red-200 text-sm text-center flex items-center justify-center"
       >
-        <!-- A simple SVG warning icon for better visuals -->
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         {{ errorMessage }}
       </div>
 
-      <!-- Login Form -->
       <form @submit.prevent="handleLogin" class="space-y-6">
 
-        <!-- Email Input -->
         <div>
           <label for="email" class="block text-sm font-medium text-gray-300 mb-1">
             Email
@@ -89,7 +83,6 @@ const handleLogin = async () => {
           >
         </div>
 
-        <!-- Password Input -->
         <div>
           <label for="password" class="block text-sm font-medium text-gray-300 mb-1">
             Password
@@ -104,15 +97,11 @@ const handleLogin = async () => {
           >
         </div>
 
-        <!-- Submit Button -->
-        <!-- ':disabled' makes the button unclickable when isLoading is true -->
-        <!-- 'disabled:opacity-70 disabled:cursor-not-allowed' adds visual feedback using Tailwind -->
         <button
             type="submit"
             :disabled="isLoading"
             class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-70 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex justify-center items-center"
         >
-          <!-- Show loading spinner and text if isLoading is true -->
           <template v-if="isLoading">
             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -120,7 +109,6 @@ const handleLogin = async () => {
             </svg>
             Signing in...
           </template>
-          <!-- Show normal text if isLoading is false -->
           <template v-else>
             Sign In
           </template>
@@ -128,7 +116,6 @@ const handleLogin = async () => {
 
       </form>
 
-      <!-- Footer -->
       <div class="mt-6 text-center text-sm text-gray-400">
         Don't have an account?
         <a href="#" class="text-blue-500 hover:text-blue-400 font-medium">Sign Up</a>

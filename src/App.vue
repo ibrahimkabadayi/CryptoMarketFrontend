@@ -1,12 +1,17 @@
 <!-- src/App.vue -->
 <template>
-  <!--
-    The router-view component acts as a dynamic placeholder.
-    Vue Router will automatically inject the correct component (e.g., LoginView) here based on the URL.
-  -->
-  <router-view></router-view>
+  <div class="min-h-screen bg-gray-900">
+    <NavBar v-if="route.name !== 'login'" />
+
+    <main>
+      <router-view></router-view>
+    </main>
+  </div>
 </template>
 
 <script setup lang="ts">
-// No need to import LoginView here anymore, the router handles it!
+import { useRoute } from 'vue-router';
+import NavBar from '@/components/NavBar.vue';
+
+const route = useRoute();
 </script>

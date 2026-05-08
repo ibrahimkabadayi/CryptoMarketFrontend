@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import MarketView from "@/views/MarketView.vue";
-import DashboardView from "@/views/PortfolioView.vue";
 import PortfolioView from "@/views/PortfolioView.vue";
 
 const routes = [

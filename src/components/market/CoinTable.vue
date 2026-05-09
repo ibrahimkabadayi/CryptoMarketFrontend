@@ -7,7 +7,7 @@ defineProps<{
 </script>
 
 <template>
-  <div v-else class="bg-gray-800 rounded-xl overflow-hidden shadow-2xl border border-gray-700">
+  <div class="bg-gray-800 rounded-xl overflow-hidden shadow-2xl border border-gray-700">
     <table class="w-full text-left border-collapse">
 
       <thead>

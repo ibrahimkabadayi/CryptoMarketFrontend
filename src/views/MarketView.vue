@@ -2,7 +2,7 @@
 import {marketApi} from "@/api/market";
 import {onMounted, ref} from "vue";
 import type {Coin} from "@/types/market";
-import CoinTable from "@/components/CoinTable.vue";
+import CoinTable from "@/components/market/CoinTable.vue";
 
 const coins = ref<Coin[]>();
 const isLoading = ref(true);
@@ -24,17 +24,6 @@ const getCoins = async () => {
   finally
   {
     isLoading.value = false;
-  }
-}
-
-const buyCoin = async (coin) => {
-  try
-  {
-
-  }
-  catch (error)
-  {
-    console.error(error);
   }
 }
 

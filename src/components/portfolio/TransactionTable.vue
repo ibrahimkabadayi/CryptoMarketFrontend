@@ -76,6 +76,4 @@ const getTransactionColorClass = (type: number | string) =>
       </div>
     </div>
   </div>
-
-  </div>
 </template>

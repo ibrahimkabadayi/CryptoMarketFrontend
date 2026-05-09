@@ -5,7 +5,7 @@ export interface Dashboard
     fiatBalance: number,
     totalInvestedValue: number,
     assets: Asset[],
-    transactions: Transaction[]
+    recentTransactions: Transaction[]
 }
 
 export interface Asset

@@ -14,6 +14,7 @@ const loginForm = ref<LoginRequest>({
 
 const isLoading = ref(false);
 const errorMessage = ref('');
+const showPassword = ref(false);
 
 const handleLogin = async () => {
   isLoading.value = true;
@@ -43,64 +44,136 @@ const handleLogin = async () => {
   }
 }
 
+const handleForgotPassword = () => {
+  alert('Password reset coming soon!');
+}
+
 </script>
 
 
 
 <template>
-  <div class="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+  <div class="animated-bg min-h-screen flex items-center justify-center p-4">
 
-    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-700">
+    <!-- Floating decorative orbs -->
+    <div class="login-orb login-orb-1"></div>
+    <div class="login-orb login-orb-2"></div>
+    <div class="login-orb login-orb-3"></div>
 
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-white mb-2">CryptoMarket</h1>
-        <p class="text-gray-400">Sign in to your account</p>
+    <div class="glass-card w-full max-w-md p-10 animate-fade-in-up relative z-10">
+
+      <!-- Logo & Header -->
+      <div class="text-center mb-10 animate-fade-in-up animate-delay-1">
+        <div class="logo-container mx-auto mb-5">
+          <svg class="logo-icon" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="50%" stop-color="#8b5cf6"/>
+                <stop offset="100%" stop-color="#a78bfa"/>
+              </linearGradient>
+            </defs>
+            <path d="M40 4L72.5 22V58L40 76L7.5 58V22L40 4Z" stroke="url(#logoGrad)" stroke-width="2.5" fill="rgba(99,102,241,0.08)"/>
+            <text x="40" y="48" text-anchor="middle" fill="url(#logoGrad)" font-size="28" font-weight="700" font-family="Inter, sans-serif">₿</text>
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold gradient-text mb-2 tracking-tight">CryptoMarket</h1>
+        <p class="text-sm" style="color: var(--text-secondary)">Sign in to your trading account</p>
       </div>
 
+      <!-- Error Message -->
       <div
           v-if="errorMessage"
-          class="mb-6 p-4 bg-red-900/50 border border-red-500 rounded-lg text-red-200 text-sm text-center flex items-center justify-center"
+          class="mb-6 p-4 rounded-xl text-sm text-center flex items-center justify-center animate-fade-in-up"
+          style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); color: #fca5a5;"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         {{ errorMessage }}
       </div>
 
-      <form @submit.prevent="handleLogin" class="space-y-6">
+      <!-- Form -->
+      <form @submit.prevent="handleLogin" class="space-y-5">
 
-        <div>
-          <label for="email" class="block text-sm font-medium text-gray-300 mb-1">
-            Email
+        <!-- Email -->
+        <div class="animate-fade-in-up animate-delay-2">
+          <label for="login-email" class="block text-sm font-medium mb-2" style="color: var(--text-secondary)">
+            Email Address
           </label>
-          <input
-              type="email"
-              id="email"
-              v-model="loginForm.email"
-              required
-              class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              placeholder="Enter your email"
-          >
+          <div class="input-wrapper">
+            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.161V6a2 2 0 00-2-2H3z"/>
+              <path d="M19 8.839l-7.832 3.916a2.75 2.75 0 01-2.336 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z"/>
+            </svg>
+            <input
+                type="email"
+                id="login-email"
+                v-model="loginForm.email"
+                required
+                class="input-glass input-with-icon"
+                placeholder="you@example.com"
+            >
+          </div>
         </div>
 
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-300 mb-1">
+        <!-- Password -->
+        <div class="animate-fade-in-up animate-delay-3">
+          <label for="login-password" class="block text-sm font-medium mb-2" style="color: var(--text-secondary)">
             Password
           </label>
-          <input
-              type="password"
-              id="password"
-              v-model="loginForm.password"
-              required
-              class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              placeholder="••••••••"
-          >
+          <div class="input-wrapper">
+            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/>
+            </svg>
+            <input
+                :type="showPassword ? 'text' : 'password'"
+                id="login-password"
+                v-model="loginForm.password"
+                required
+                class="input-glass input-with-icon"
+                placeholder="••••••••"
+                style="padding-right: 48px;"
+            >
+            <button
+                type="button"
+                @click="showPassword = !showPassword"
+                class="password-toggle"
+                tabindex="-1"
+            >
+              <!-- Eye open -->
+              <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"/>
+                <path fill-rule="evenodd" d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41z" clip-rule="evenodd"/>
+              </svg>
+              <!-- Eye closed -->
+              <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                <path fill-rule="evenodd" d="M3.28 2.22a.75.75 0 00-1.06 1.06l14.5 14.5a.75.75 0 101.06-1.06l-1.745-1.745a10.029 10.029 0 003.3-4.38 1.651 1.651 0 000-1.185A10.004 10.004 0 009.999 3a9.956 9.956 0 00-4.744 1.194L3.28 2.22zM7.752 6.69l1.092 1.092a2.5 2.5 0 013.374 3.373l1.092 1.092a4 4 0 00-5.558-5.558z" clip-rule="evenodd"/>
+                <path d="M10.748 13.93l2.523 2.523A9.987 9.987 0 0110 17a10.004 10.004 0 01-9.336-6.41 1.651 1.651 0 010-1.186 10.007 10.007 0 012.862-4.014l1.66 1.66A4 4 0 0010.748 13.93z"/>
+              </svg>
+            </button>
+          </div>
         </div>
 
+        <!-- Forgot Password -->
+        <div class="text-right animate-fade-in-up animate-delay-3">
+          <button
+              type="button"
+              @click="handleForgotPassword"
+              class="text-xs font-medium transition-colors cursor-pointer bg-transparent border-none"
+              style="color: var(--text-muted);"
+              onmouseover="this.style.color='#a78bfa'"
+              onmouseout="this.style.color='var(--text-muted)'"
+          >
+            Forgot password?
+          </button>
+        </div>
+
+        <!-- Submit Button -->
         <button
             type="submit"
             :disabled="isLoading"
-            class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-70 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex justify-center items-center"
+            class="btn-gradient w-full py-3.5 text-base rounded-xl flex justify-center items-center animate-fade-in-up animate-delay-4"
         >
           <template v-if="isLoading">
             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -110,20 +183,116 @@ const handleLogin = async () => {
             Signing in...
           </template>
           <template v-else>
-            Sign In
+            <span>Sign In</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M3 4.5A1.5 1.5 0 014.5 3h4a.75.75 0 010 1.5h-4a.5.5 0 00-.5.5v11a.5.5 0 00.5.5h4a.75.75 0 010 1.5h-4A1.5 1.5 0 013 15.5v-11zM14.22 9.47a.75.75 0 011.06 0l2.25 2.25a.75.75 0 010 1.06l-2.25 2.25a.75.75 0 11-1.06-1.06l.97-.97H7.75a.75.75 0 010-1.5h7.44l-.97-.97a.75.75 0 010-1.06z" clip-rule="evenodd"/>
+            </svg>
           </template>
         </button>
 
       </form>
 
-      <div class="mt-6 text-center text-sm text-gray-400">
+      <!-- Sign Up Link -->
+      <div class="mt-8 text-center text-sm animate-fade-in-up animate-delay-5" style="color: var(--text-muted)">
         Don't have an account?
-        <a href="#" class="text-blue-500 hover:text-blue-400 font-medium">Sign Up</a>
+        <a href="#" class="font-semibold transition-colors ml-1" style="color: var(--accent-3);"
+           onmouseover="this.style.color='#c4b5fd'" onmouseout="this.style.color='#a78bfa'"
+        >Create Account</a>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.logo-container {
+  width: 80px;
+  height: 80px;
+  animation: float 4s ease-in-out infinite;
+}
 
+.logo-icon {
+  width: 80px;
+  height: 80px;
+  filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.3));
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: color 0.3s ease;
+  z-index: 1;
+}
+
+.input-with-icon {
+  padding-left: 42px !important;
+}
+
+.input-wrapper:focus-within .input-icon {
+  color: var(--accent-3);
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.password-toggle:hover {
+  color: var(--text-primary);
+}
+
+/* Floating orbs */
+.login-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.login-orb-1 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.08), transparent 70%);
+  top: 10%;
+  left: 10%;
+  animation: float 8s ease-in-out infinite;
+}
+
+.login-orb-2 {
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.06), transparent 70%);
+  bottom: 20%;
+  right: 15%;
+  animation: float 6s ease-in-out infinite 2s;
+}
+
+.login-orb-3 {
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.05), transparent 70%);
+  top: 60%;
+  left: 60%;
+  animation: float 10s ease-in-out infinite 4s;
+}
 </style>

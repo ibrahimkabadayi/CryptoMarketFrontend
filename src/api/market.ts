@@ -6,5 +6,9 @@ export const marketApi = {
     {
         const response = await apiClient.get<Coin[]>('/api/market');
         return response.data as Coin[];
+    },
+    buyCoin: async (coin: Coin) =>
+    {
+
     }
 }

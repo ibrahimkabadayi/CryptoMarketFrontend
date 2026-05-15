@@ -5,3 +5,9 @@ export interface Coin
     currentPrice: number;
     marketCap: number;
 }
+
+export interface PriceUpdateMessage
+{
+    symbol: string;
+    price: number;
+}

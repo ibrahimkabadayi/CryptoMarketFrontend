@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import {marketApi} from "@/api/market";
 import {computed, onMounted, ref} from "vue";
-import type {Coin} from "@/types/market";
+import {signalRService} from "@/api/signalR";
+import type {Coin, PriceUpdateMessage} from "@/types/market";
 import CoinTable from "@/components/market/CoinTable.vue";
 
 const coins = ref<Coin[]>();
@@ -28,7 +29,8 @@ const getCoins = async () => {
   }
 }
 
-const filteredCoins = computed(() => {
+const filteredCoins = computed(() =>
+{
   if (!coins.value) return [];
   if (!searchQuery.value.trim()) return coins.value;
   const query = searchQuery.value.toLowerCase();
@@ -40,7 +42,8 @@ const filteredCoins = computed(() => {
 
 const totalCoins = computed(() => coins.value?.length ?? 0);
 
-const topGainer = computed(() => {
+const topGainer = computed(() =>
+{
   if (!coins.value || coins.value.length === 0) return null;
   return coins.value.reduce((a, b) => a.currentPrice > b.currentPrice ? a : b);
 });
@@ -51,6 +54,22 @@ const buyCoin = (coin: Coin) => {
 
 onMounted(() => {
   getCoins();
+
+  signalRService.startConnection('/hubs/market');
+
+  signalRService.on('ReceivePriceUpdate', (updateInfo : PriceUpdateMessage) =>
+  {
+    if (coins.value)
+    {
+      const coinToUpdate = coins.value.find(x => x.symbol == updateInfo.symbol);
+
+      if (coinToUpdate)
+      {
+        coinToUpdate.currentPrice = updateInfo.price;
+        console.log(`${updateInfo.symbol} new price: $${updateInfo.price}`);
+      }
+    }
+  })
 })
 
 </script>

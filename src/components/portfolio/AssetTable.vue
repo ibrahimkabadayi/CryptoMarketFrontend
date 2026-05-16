@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Asset } from "@/types/portfolio";
-import { computed } from "vue";
 
 const props = defineProps<{
   assets: Asset[],

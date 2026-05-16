@@ -1,36 +1,28 @@
 <script setup lang="ts">
-import {marketApi} from "@/api/market";
-import {computed, onMounted, ref} from "vue";
-import {signalRService} from "@/api/signalR";
-import type {Coin, PriceUpdateMessage} from "@/types/market";
+import { computed, onMounted, ref } from "vue";
+import { storeToRefs } from "pinia";
+import { useMarketStore } from "@/stores/marketStore";
+import type { Coin } from "@/types/market";
 import CoinTable from "@/components/market/CoinTable.vue";
 
-const coins = ref<Coin[]>();
-const isLoading = ref(true);
+const marketStore = useMarketStore();
+
+const { coins, isLoading } = storeToRefs(marketStore);
+
 const errorMessage = ref("");
 const searchQuery = ref("");
 
 const getCoins = async () => {
-  isLoading.value = true;
   errorMessage.value = "";
 
-  try
-  {
-    coins.value = await marketApi.getAllCoins();
-  }
-  catch (error)
-  {
-    console.error("Failed to fetch market data:", error);
-    errorMessage.value = "Could not connect to the market server. Please try again later.";
-  }
-  finally
-  {
-    isLoading.value = false;
-  }
-}
+  await marketStore.fetchInitialCoins();
 
-const filteredCoins = computed(() =>
-{
+  if (!coins.value || coins.value.length === 0) {
+    errorMessage.value = "Could not connect to the market server or no data available. Please try again later.";
+  }
+};
+
+const filteredCoins = computed(() => {
   if (!coins.value) return [];
   if (!searchQuery.value.trim()) return coins.value;
   const query = searchQuery.value.toLowerCase();
@@ -42,40 +34,23 @@ const filteredCoins = computed(() =>
 
 const totalCoins = computed(() => coins.value?.length ?? 0);
 
-const topGainer = computed(() =>
-{
+const topGainer = computed(() => {
   if (!coins.value || coins.value.length === 0) return null;
   return coins.value.reduce((a, b) => a.currentPrice > b.currentPrice ? a : b);
 });
 
 const buyCoin = (coin: Coin) => {
   console.log("The coin that wanted to be bought:", coin.name, coin.currentPrice);
-}
+};
 
-onMounted(() => {
-  getCoins();
+onMounted(async () => {
+  await getCoins();
 
-  signalRService.startConnection('/hubs/market');
-
-  signalRService.on('ReceivePriceUpdate', (updateInfo : PriceUpdateMessage) =>
-  {
-    if (coins.value)
-    {
-      const coinToUpdate = coins.value.find(x => x.symbol == updateInfo.symbol);
-
-      if (coinToUpdate)
-      {
-        coinToUpdate.currentPrice = updateInfo.price;
-        console.log(`${updateInfo.symbol} new price: $${updateInfo.price}`);
-      }
-    }
-  })
-})
-
+  await marketStore.initSignalR();
+});
 </script>
 
 <template>
-
   <div class="min-h-screen text-white p-6 md:p-8">
     <div class="max-w-7xl mx-auto">
 
@@ -177,7 +152,6 @@ onMounted(() => {
 
     </div>
   </div>
-
 </template>
 
 <style scoped>

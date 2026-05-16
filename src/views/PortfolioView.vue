@@ -34,7 +34,6 @@ onMounted(() => { getDashboard(); })
   <div class="min-h-screen text-white p-6 md:p-8">
     <div class="max-w-7xl mx-auto">
 
-      <!-- Header -->
       <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-8 animate-fade-in-up">
         <div>
           <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-2">
@@ -54,7 +53,6 @@ onMounted(() => { getDashboard(); })
         </div>
       </div>
 
-      <!-- Loading -->
       <div v-if="isLoading" class="animate-fade-in-up space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="glass-card-static p-6"><div class="shimmer mb-3" style="width:100px;height:12px"></div><div class="shimmer" style="width:180px;height:32px"></div></div>
@@ -70,7 +68,6 @@ onMounted(() => { getDashboard(); })
         </div>
       </div>
 
-      <!-- Error -->
       <div v-else-if="errorMessage" class="animate-fade-in-up">
         <div class="glass-card p-8 text-center">
           <div class="mx-auto mb-4" style="width:56px;height:56px;border-radius:50%;background:rgba(239,68,68,0.1);display:flex;align-items:center;justify-content:center">
@@ -82,10 +79,8 @@ onMounted(() => { getDashboard(); })
         </div>
       </div>
 
-      <!-- Content -->
       <div v-else-if="dashboard" class="space-y-6">
 
-        <!-- Stats -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up animate-delay-1">
           <div class="glass-card p-6 flex items-center space-x-5">
             <div class="stat-icon-lg" style="background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(52,211,153,0.08))">
@@ -107,7 +102,6 @@ onMounted(() => { getDashboard(); })
           </div>
         </div>
 
-        <!-- Wallet Card -->
         <div class="wallet-card glass-card p-6 animate-fade-in-up animate-delay-2">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center space-x-4">

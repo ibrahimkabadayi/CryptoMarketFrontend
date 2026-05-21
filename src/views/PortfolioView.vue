@@ -1,33 +1,74 @@
 <script setup lang="ts">
-import {onMounted, ref} from "vue";
-import {portfolioApi} from "@/api/portfolio";
-import {Dashboard} from "@/types/portfolio";
+import { onMounted } from "vue";
+import { storeToRefs } from "pinia";
+import { usePortfolioStore } from "@/stores/portfolioStore"
 import AssetTable from "@/components/portfolio/AssetTable.vue";
 import TransactionTable from "@/components/portfolio/TransactionTable.vue";
 
-const dashboard = ref<Dashboard>()
-const isLoading = ref(false);
-const errorMessage = ref("");
+const portfolioStore = usePortfolioStore();
+
+const {dashboard, isLoading, errorMessage} = storeToRefs(portfolioStore)
 
 const getDashboard = async () => {
-  isLoading.value = true;
-  try {
-    dashboard.value = await portfolioApi.getDashboard();
-  } catch (error) {
-    console.error("Failed to fetch portfolio data:", error);
-    errorMessage.value = error.message;
-  } finally {
-    isLoading.value = false;
-  }
+  await portfolioStore.fetchDashboard();
 }
 
-const handleDeposit = () => alert('Deposit feature coming soon!');
-const handleWithdraw = () => alert('Withdraw feature coming soon!');
+const handleDeposit = async () => {
+  const amountStr = prompt("Enter deposit amount:");
+  if (!amountStr) return;
+  const amount = parseFloat(amountStr);
+  if (isNaN(amount) || amount <= 0) {
+    alert("Please enter a valid amount");
+    return;
+  }
+  await portfolioStore.deposit(amount);
+};
+
+const handleWithdraw = async () => {
+  const amountStr = prompt("Enter withdraw amount:");
+  if (!amountStr) return;
+  const amount = parseFloat(amountStr);
+  if (isNaN(amount) || amount <= 0) {
+    alert("Please enter a valid amount");
+    return;
+  }
+  if (amount > dashboard.value.fiatBalance){
+    alert(`Not enough bullets!`);
+    return;
+  }
+  await portfolioStore.withdraw(amount);
+};
+
+const handleCoinBought = async (symbol: string) => {
+  const amountStr = prompt(`Enter amount of ${symbol} to buy:`);
+  if (!amountStr) return;
+  const amount = parseFloat(amountStr);
+  if (isNaN(amount) || amount <= 0) {
+    alert("Please enter a valid amount");
+    return;
+  }
+  await portfolioStore.buyCoin(symbol, amount);
+};
+
+const handleCoinSell = async (symbol: string) => {
+  const amountStr = prompt(`Enter amount of ${symbol} to sell:`);
+  if (!amountStr) return;
+  const amount = parseFloat(amountStr);
+  if (isNaN(amount) || amount <= 0) {
+    alert("Please enter a valid amount");
+    return;
+  }
+  await portfolioStore.sellCoin(symbol, amount);
+}
+
 const copyAddress = () => {
   if (dashboard.value?.address) navigator.clipboard.writeText(dashboard.value.address);
 }
 
-onMounted(() => { getDashboard(); })
+onMounted(() => {
+  getDashboard();
+  portfolioStore.initPortfolioSignalR();
+})
 </script>
 
 <template>
@@ -42,11 +83,11 @@ onMounted(() => { getDashboard(); })
           <p style="color: var(--text-secondary)" class="text-base">Monitor your assets, balances, and recent activity</p>
         </div>
         <div class="flex items-center space-x-3 mt-4 md:mt-0" v-if="!isLoading && dashboard">
-          <button @click="handleDeposit" class="btn-gradient px-5 py-2.5 text-sm rounded-xl flex items-center space-x-2" id="deposit-btn">
+          <button @click="handleDeposit()" class="btn-gradient px-5 py-2.5 text-sm rounded-xl flex items-center space-x-2" id="deposit-btn">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path d="M10.75 6.75a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z"/></svg>
             <span>Deposit</span>
           </button>
-          <button @click="handleWithdraw" class="btn-outline px-5 py-2.5 text-sm flex items-center space-x-2" id="withdraw-btn">
+          <button @click="handleWithdraw()" class="btn-outline px-5 py-2.5 text-sm flex items-center space-x-2" id="withdraw-btn">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path fill-rule="evenodd" d="M10 17a.75.75 0 01-.75-.75V5.612L5.29 9.77a.75.75 0 01-1.08-1.04l5.25-5.5a.75.75 0 011.08 0l5.25 5.5a.75.75 0 11-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0110 17z" clip-rule="evenodd"/></svg>
             <span>Withdraw</span>
           </button>
@@ -121,7 +162,7 @@ onMounted(() => { getDashboard(); })
           </div>
         </div>
 
-        <div class="animate-fade-in-up animate-delay-3"><AssetTable :assets="dashboard.assets" :totalInvested="dashboard.totalInvestedValue" /></div>
+        <div class="animate-fade-in-up animate-delay-3"><AssetTable :assets="dashboard.assets" :totalInvested="dashboard.totalInvestedValue" @sell="handleCoinSell" @buy="handleCoinBought" /></div>
         <div class="animate-fade-in-up animate-delay-4"><TransactionTable :transactions="dashboard.recentTransactions" /></div>
       </div>
     </div>

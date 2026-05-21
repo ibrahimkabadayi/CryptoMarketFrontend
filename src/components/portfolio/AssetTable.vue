@@ -6,6 +6,11 @@ const props = defineProps<{
   totalInvested?: number
 }>();
 
+defineEmits<{
+  (e: 'sell', symbol: string): void,
+  (e: 'buy', symbol: string): void
+}>();
+
 const getSymbolColor = (symbol: string) => {
   const colors = [
     { bg: 'rgba(99,102,241,0.15)', text: '#818cf8', border: 'rgba(99,102,241,0.3)' },
@@ -46,6 +51,7 @@ const getSharePercent = (amount: number) => {
           <th class="text-right">Avg Buy Price</th>
           <th class="text-right">Invested</th>
           <th style="width:120px">Share</th>
+          <th class="text-center" style="width: 120px;">Actions</th>
         </tr>
         </thead>
         <tbody>
@@ -64,6 +70,16 @@ const getSharePercent = (amount: number) => {
           <td>
             <div class="progress-bar-bg">
               <div class="progress-bar-fill" :style="{width: getSharePercent(asset.investedAmount)+'%', background: getSymbolColor(asset.symbol).text}"></div>
+            </div>
+          </td>
+          <td class="text-center">
+            <div class="flex items-center justify-center space-x-2">
+              <button @click="$emit('buy', asset.symbol)" class="buy-btn-small">
+                Buy
+              </button>
+              <button @click="$emit('sell', asset.symbol)" class="sell-btn">
+                Sell
+              </button>
             </div>
           </td>
         </tr>
@@ -87,4 +103,36 @@ const getSharePercent = (amount: number) => {
 .asset-row:hover .asset-badge{transform:scale(1.1)}
 .progress-bar-bg{width:100%;height:6px;border-radius:3px;background:rgba(99,102,241,0.08);overflow:hidden}
 .progress-bar-fill{height:100%;border-radius:3px;transition:width .6s ease-out;opacity:.7}
+.sell-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.sell-btn:hover {
+  background: #ef4444;
+  color: white;
+  border-color: transparent;
+}
+.buy-btn-small {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent-3);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.buy-btn-small:hover {
+  background: var(--accent-3);
+  color: white;
+  border-color: transparent;
+}
 </style>

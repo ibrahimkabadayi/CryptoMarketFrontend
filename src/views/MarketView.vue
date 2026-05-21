@@ -2,10 +2,12 @@
 import { computed, onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useMarketStore } from "@/stores/marketStore";
+import { usePortfolioStore } from "@/stores/portfolioStore";
 import type { Coin } from "@/types/market";
 import CoinTable from "@/components/market/CoinTable.vue";
 
 const marketStore = useMarketStore();
+const portfolioStore = usePortfolioStore();
 
 const { coins, isLoading } = storeToRefs(marketStore);
 
@@ -39,8 +41,15 @@ const topGainer = computed(() => {
   return coins.value.reduce((a, b) => a.currentPrice > b.currentPrice ? a : b);
 });
 
-const buyCoin = (coin: Coin) => {
-  console.log("The coin that wanted to be bought:", coin.name, coin.currentPrice);
+const buyCoin = async (coin: Coin) => {
+  const amountStr = prompt(`Enter amount of ${coin.symbol} to buy:`);
+  if (!amountStr) return;
+  const amount = parseFloat(amountStr);
+  if (isNaN(amount) || amount <= 0) {
+    alert("Please enter a valid amount");
+    return;
+  }
+  await portfolioStore.buyCoin(coin.symbol, amount);
 };
 
 onMounted(async () => {

@@ -6,7 +6,7 @@ export const authApi = {
     {
         try
         {
-            const response = await apiClient.post<LoginResponse>("/api/auth/login", credentials);
+            const response = await apiClient.post<LoginResponse>("api/auth/login", credentials);
             return response.data;
         }
         catch(error)

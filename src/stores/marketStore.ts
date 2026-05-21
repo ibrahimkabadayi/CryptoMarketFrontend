@@ -8,7 +8,6 @@ export const useMarketStore = defineStore('market', () => {
     const coins = ref<Coin[]>([]);
     const isLoading = ref(false);
 
-
     const fetchInitialCoins = async () => {
         isLoading.value = true;
         try {

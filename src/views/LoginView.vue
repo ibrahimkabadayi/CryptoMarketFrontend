@@ -19,8 +19,7 @@ const handleLogin = async () => {
   isLoading.value = true;
   errorMessage.value = '';
 
-  try
-  {
+  try {
     const response = await authApi.login({
       email: loginForm.value.email,
       password: loginForm.value.password
@@ -32,13 +31,11 @@ const handleLogin = async () => {
 
     await router.push('/market');
   }
-  catch (error:any)
-  {
+  catch (error:any) {
     console.log("Login failed", error);
     errorMessage.value = error.response?.data?.message || "Invalid credentials or server error. Please try again.";
   }
-  finally
-  {
+  finally {
     isLoading.value = false;
   }
 }
@@ -46,7 +43,6 @@ const handleLogin = async () => {
 const handleForgotPassword = () => {
   alert('Password reset coming soon!');
 }
-
 </script>
 
 

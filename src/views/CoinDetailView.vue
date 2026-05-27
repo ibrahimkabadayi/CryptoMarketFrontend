@@ -4,9 +4,12 @@ import { useRoute } from 'vue-router';
 import { useMarketStore } from '@/stores/marketStore';
 import type { Coin, PriceHistory } from '@/types/marketTypes';
 import VueApexCharts from 'vue3-apexcharts';
+import {useMarketNewsStore} from "@/stores/marketNewsStore";
+import NewsList from "@/components/market/NewsList.vue";
 
 const route = useRoute();
 const marketStore = useMarketStore();
+const marketNewsStore = useMarketNewsStore();
 
 const isLoading = ref(true);
 const coinData = ref<Coin | null>(null);
@@ -97,7 +100,6 @@ const chartOptions = computed(() => ({
   }
 }));
 
-
 onMounted(async () => {
   isLoading.value = true;
   try {
@@ -113,6 +115,8 @@ onMounted(async () => {
     if (foundCoin) {
       coinData.value = foundCoin;
     }
+
+    await marketNewsStore.fetchNewsBySymbol(symbol);
 
   } catch (error) {
     console.error('Fetch error:', error);
@@ -197,6 +201,22 @@ watch(selectedTimeframe, async (newTimeframe) => {
               :options="chartOptions"
               :series="chartSeries">
           </VueApexCharts>
+      </div>
+
+      <div class="pt-8">
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l4 4v10a2 2 0 01-2 2z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 2v4a2 2 0 002 2h4" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h10M7 16h10" />
+          </svg>
+          Latest {{ coinData?.name }} News
+        </h2>
+        <NewsList :market-news="marketNewsStore.news" />
+        
+        <div v-if="marketNewsStore.news.length === 0" class="glass-card p-8 text-center">
+          <p class="text-gray-400">No recent news for {{ coinData?.symbol }}.</p>
+        </div>
       </div>
 
     </div>

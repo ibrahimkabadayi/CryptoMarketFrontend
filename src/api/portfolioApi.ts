@@ -1,6 +1,6 @@
 import apiClient from "@/api/axios";
-import type {Dashboard} from "@/types/portfolio";
-import {Coin} from "@/types/market";
+import type {Dashboard} from "@/types/portfolioTypes";
+import {Coin} from "@/types/marketTypes";
 
 export const portfolioApi = {
     getDashboard: async() => {

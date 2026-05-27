@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useMarketStore } from "@/stores/marketStore";
 import { usePortfolioStore } from "@/stores/portfolioStore";
-import type { Coin } from "@/types/market";
+import type { Coin } from "@/types/marketTypes";
 import CoinTable from "@/components/market/CoinTable.vue";
 
 const marketStore = useMarketStore();

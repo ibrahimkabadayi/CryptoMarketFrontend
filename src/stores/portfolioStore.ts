@@ -1,9 +1,9 @@
 import {defineStore} from 'pinia';
 import {ref} from 'vue';
-import {portfolioApi} from "@/api/portfolio";
+import {portfolioApi} from "@/api/portfolioApi";
 import {useMarketStore} from "@/stores/marketStore";
-import {Dashboard, Transaction} from "@/types/portfolio";
-import {signalRService} from '@/api/signalR';
+import {Dashboard} from "@/types/portfolioTypes";
+import {signalRService} from '@/api/signalRApi';
 
 export const usePortfolioStore = defineStore('portfolio', () => {
     const dashboard = ref<Dashboard>();

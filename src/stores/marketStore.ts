@@ -1,8 +1,8 @@
 import {defineStore} from 'pinia';
 import {ref} from 'vue';
-import type {Coin, PriceUpdateMessage} from '@/types/market';
-import {marketApi} from '@/api/market';
-import {signalRService} from '@/api/signalR';
+import type {Coin, PriceHistory, HistoryUpdateMessage, PriceUpdateMessage, SetLimitOrderRequest} from '@/types/marketTypes';
+import {marketApi} from '@/api/marketApi';
+import {signalRService} from '@/api/signalRApi';
 
 export const useMarketStore = defineStore('market', () => {
     const coins = ref<Coin[]>([]);

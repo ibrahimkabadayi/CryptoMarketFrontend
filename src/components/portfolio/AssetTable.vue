@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Asset } from "@/types/portfolio";
+import type { Asset } from "@/types/portfolioTypes";
 
 const props = defineProps<{
   assets: Asset[],

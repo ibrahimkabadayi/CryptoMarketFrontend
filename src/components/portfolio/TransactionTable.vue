@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Transaction } from "@/types/portfolio";
+import type { Transaction } from "@/types/portfolioTypes";
 
 defineProps<{
   transactions: Transaction[]

@@ -5,7 +5,7 @@ class SignalRService{
     private readonly baseUrl: string;
 
     constructor() {
-        this.baseUrl = "http://localhost:5252/"
+        this.baseUrl = "http://localhost:5226"
     }
 
     public async startConnection(hubUrl: string, isAuthRequired: boolean = false): Promise<void> {

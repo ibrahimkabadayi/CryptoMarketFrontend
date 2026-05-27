@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type {Coin} from "@/types/market";
+import type {Coin} from "@/types/marketTypes";
 
 const props = defineProps<{
   coins: Coin[]
@@ -83,7 +83,11 @@ const getMockChange = (symbol: string) => {
               >
                 {{ coin.symbol.charAt(0) }}
               </div>
-              <span class="font-semibold" style="color: var(--text-primary);">{{ coin.name }}</span>
+              <span class="font-semibold" style="color: var(--text-primary);">
+                <router-link :to="{ name: 'coin-detail', params: { symbol: coin.symbol } }">
+                    {{ coin.name }}
+                </router-link>
+              </span>
             </div>
           </td>
 

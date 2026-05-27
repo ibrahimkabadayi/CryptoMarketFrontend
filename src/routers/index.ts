@@ -8,7 +8,7 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/',
         name: 'login',
-        component: LoginView
+        component: MarketView
     },
     {
         path: '/',
@@ -18,6 +18,12 @@ const routes: RouteRecordRaw[] = [
                 path: 'market',
                 name: 'market',
                 component: MarketView
+            },
+            {
+                path: 'market/:symbol',
+                name: 'coin-detail',
+                component: () => import('@/views/CoinDetailView.vue'),
+                props: true
             },
             {
                 path: 'portfolio',

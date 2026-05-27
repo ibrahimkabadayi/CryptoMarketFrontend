@@ -8,21 +8,31 @@ class SignalRService{
         this.baseUrl = "http://localhost:5252/"
     }
 
-    public async startConnection(hubUrl: string): Promise<void> {
+    public async startConnection(hubUrl: string, isAuthRequired: boolean = false): Promise<void> {
         if (this.connection) {
             console.log("Connection already exists.");
             return;
         }
 
         try{
-           this.connection = new signalR.HubConnectionBuilder()
-               .withUrl(this.baseUrl + hubUrl)
+            const options: signalR.IHttpConnectionOptions = {
+                headers: {
+                    'Idempotency-Key': crypto.randomUUID()
+                }
+            };
+
+            if (isAuthRequired){
+                options.accessTokenFactory = () => localStorage.getItem('token') || "";
+            }
+
+            this.connection = new signalR.HubConnectionBuilder()
+               .withUrl(this.baseUrl + hubUrl, options)
                .withAutomaticReconnect()
                .build();
 
-           console.log(this.connection.baseUrl);
+            console.log(this.connection.baseUrl);
 
-           await this.connection.start();
+            await this.connection.start();
 
             this.connection.onclose((error) => {
                 console.warn("SignalR Connection closed: ", error);

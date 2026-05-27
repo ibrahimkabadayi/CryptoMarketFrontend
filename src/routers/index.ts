@@ -3,6 +3,8 @@ import LoginView from '../views/LoginView.vue'
 import MarketView from "@/views/MarketView.vue";
 import PortfolioView from "@/views/PortfolioView.vue";
 import MainLayout from "@/layouts/MainLayout.vue";
+import MarketNewsView from "@/views/MarketNewsView.vue";
+import NewsDetailView from "@/views/NewsDetailView.vue";
 
 const routes: RouteRecordRaw[] = [
     {
@@ -29,6 +31,17 @@ const routes: RouteRecordRaw[] = [
                 path: 'portfolio',
                 name: 'portfolio',
                 component: PortfolioView
+            },
+            {
+                path: 'market-news',
+                name: 'news',
+                component: MarketNewsView
+            },
+            {
+                path: 'market-news/:title',
+                name: 'news-detail',
+                component: NewsDetailView,
+                props: true
             }
         ]
     }

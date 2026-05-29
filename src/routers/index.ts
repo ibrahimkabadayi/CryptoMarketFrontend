@@ -8,14 +8,24 @@ import NewsDetailView from "@/views/NewsDetailView.vue";
 
 const routes: RouteRecordRaw[] = [
     {
-        path: '/',
+        path: '/login',
         name: 'login',
-        component: MarketView
+        component: LoginView
+    },
+    {
+        path: '/register',
+        name: 'register',
+        component: () => import('@/views/RegisterView.vue')
     },
     {
         path: '/',
         component: MainLayout,
         children: [
+            {
+                path: '',
+                name: 'home',
+                component: () => import('@/views/HomeView.vue')
+            },
             {
                 path: 'market',
                 name: 'market',

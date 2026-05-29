@@ -96,7 +96,7 @@ const chartOptions = computed(() => ({
     strokeDashArray: 4
   },
   tooltip: {
-    theme: 'dark'
+    theme: 'dark' as const
   }
 }));
 

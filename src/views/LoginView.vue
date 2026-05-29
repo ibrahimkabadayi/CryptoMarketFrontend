@@ -155,10 +155,7 @@ const handleForgotPassword = () => {
           <button
               type="button"
               @click="handleForgotPassword"
-              class="text-xs font-medium transition-colors cursor-pointer bg-transparent border-none"
-              style="color: var(--text-muted);"
-              onmouseover="this.style.color='#a78bfa'"
-              onmouseout="this.style.color='var(--text-muted)'"
+              class="text-xs font-medium transition-colors cursor-pointer bg-transparent border-none auth-link-muted"
           >
             Forgot password?
           </button>
@@ -190,9 +187,7 @@ const handleForgotPassword = () => {
       <!-- Sign Up Link -->
       <div class="mt-8 text-center text-sm animate-fade-in-up animate-delay-5" style="color: var(--text-muted)">
         Don't have an account?
-        <a href="#" class="font-semibold transition-colors ml-1" style="color: var(--accent-3);"
-           onmouseover="this.style.color='#c4b5fd'" onmouseout="this.style.color='#a78bfa'"
-        >Create Account</a>
+        <router-link to="/register" class="font-semibold transition-colors ml-1 auth-link-accent">Create Account</router-link>
       </div>
     </div>
   </div>
@@ -209,6 +204,22 @@ const handleForgotPassword = () => {
   width: 80px;
   height: 80px;
   filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.3));
+}
+
+.auth-link-muted {
+  color: var(--text-muted);
+}
+.auth-link-muted:hover, .auth-link-muted:focus {
+  color: #a78bfa;
+  outline: none;
+}
+
+.auth-link-accent {
+  color: var(--accent-3, #a78bfa);
+}
+.auth-link-accent:hover, .auth-link-accent:focus {
+  color: #c4b5fd;
+  outline: none;
 }
 
 .input-wrapper {

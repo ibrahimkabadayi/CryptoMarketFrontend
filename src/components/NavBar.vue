@@ -23,7 +23,7 @@ const userInitial = computed(() => 'U');
     <div class="max-w-7xl mx-auto flex justify-between items-center px-6 py-3">
 
       <!-- Logo -->
-      <router-link to="/market" class="flex items-center space-x-3 group" style="text-decoration: none;">
+      <router-link to="/" class="flex items-center space-x-3 group" style="text-decoration: none;">
         <div class="nav-logo">
           <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>

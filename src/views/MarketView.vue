@@ -5,6 +5,7 @@ import { useMarketStore } from "@/stores/marketStore";
 import { usePortfolioStore } from "@/stores/portfolioStore";
 import type { Coin } from "@/types/marketTypes";
 import CoinTable from "@/components/market/CoinTable.vue";
+import { Coins, TrendingUp, Search, AlertTriangle } from 'lucide-vue-next';
 
 const marketStore = useMarketStore();
 const portfolioStore = usePortfolioStore();
@@ -54,67 +55,59 @@ const buyCoin = async (coin: Coin) => {
 
 onMounted(async () => {
   await getCoins();
-
   await marketStore.initSignalR();
 });
 </script>
 
 <template>
-  <div class="min-h-screen text-white p-6 md:p-8">
+  <div class="min-h-screen text-white p-6 md:p-8 bg-matte-black">
     <div class="max-w-7xl mx-auto">
 
       <!-- Page Header -->
-      <div class="mb-8 animate-fade-in-up">
-        <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-2">
-          <span class="gradient-text">Cryptocurrency</span> Market
+      <div class="mb-8 animate-fade-in-up border-b border-border-subtle pb-6">
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-2 uppercase text-white font-sans">
+          Market <span class="text-volt-green">Overview</span>
         </h1>
-        <p style="color: var(--text-secondary)" class="text-base">
-          Track real-time prices and make informed trading decisions
+        <p class="text-sm font-mono text-text-secondary uppercase tracking-widest">
+          > Global Market Index & Asset Tracking
         </p>
       </div>
 
       <!-- Stats Row + Search -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 animate-fade-in-up animate-delay-1" v-if="!isLoading && !errorMessage">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-border-subtle bg-bg-surface mb-8 animate-fade-in-up animate-delay-1" v-if="!isLoading && !errorMessage">
 
         <!-- Total Coins -->
-        <div class="glass-card p-5 flex items-center space-x-4">
-          <div class="stat-icon-box" style="background: rgba(99, 102, 241, 0.12);">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5" style="color: var(--accent-3);">
-              <path d="M10.362 1.093a.75.75 0 00-.724 0L2.523 5.018 10 9.143l7.477-4.125-7.115-3.925zM18 6.443l-7.25 4v8.25l6.862-3.786A.75.75 0 0018 14.25V6.443zm-8.75 12.25v-8.25l-7.25-4v7.807a.75.75 0 00.388.657l6.862 3.786z"/>
-            </svg>
+        <div class="p-5 flex items-center space-x-4 border-b md:border-b-0 md:border-r border-border-subtle hover:bg-bg-hover transition-colors">
+          <div class="stat-icon-box bg-bg-deep border border-border-subtle">
+            <Coins :size="20" class="text-text-primary" />
           </div>
           <div>
-            <p class="text-xs font-medium uppercase tracking-wider" style="color: var(--text-muted);">Total Coins</p>
-            <p class="text-2xl font-bold" style="color: var(--text-primary);">{{ totalCoins }}</p>
+            <p class="label-tech">Indexed Assets</p>
+            <p class="text-2xl font-bold font-mono text-white">{{ totalCoins }}</p>
           </div>
         </div>
 
         <!-- Top Coin -->
-        <div class="glass-card p-5 flex items-center space-x-4" v-if="topGainer">
-          <div class="stat-icon-box" style="background: rgba(16, 185, 129, 0.12);">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5" style="color: #34d399;">
-              <path fill-rule="evenodd" d="M12.577 4.878a.75.75 0 01.919-.53l4.78 1.281a.75.75 0 01.531.919l-1.281 4.78a.75.75 0 01-1.449-.387l.81-3.022a19.407 19.407 0 00-5.594 5.203.75.75 0 01-1.139.093L7 10.06l-4.72 4.72a.75.75 0 01-1.06-1.061l5.25-5.25a.75.75 0 011.06 0l3.074 3.073a20.923 20.923 0 015.545-4.931l-3.042.815a.75.75 0 01-.53-.919z" clip-rule="evenodd"/>
-            </svg>
+        <div class="p-5 flex items-center space-x-4 border-b md:border-b-0 md:border-r border-border-subtle hover:bg-bg-hover transition-colors" v-if="topGainer">
+          <div class="stat-icon-box bg-bg-deep border border-volt-green">
+            <TrendingUp :size="20" class="text-volt-green" />
           </div>
           <div>
-            <p class="text-xs font-medium uppercase tracking-wider" style="color: var(--text-muted);">Highest Price</p>
-            <p class="text-2xl font-bold" style="color: #34d399;">{{ topGainer.symbol }}</p>
+            <p class="label-tech text-volt-green">Top Valuation</p>
+            <p class="text-2xl font-bold font-mono text-volt-green">{{ topGainer.symbol }}</p>
           </div>
         </div>
 
         <!-- Search -->
-        <div class="glass-card p-5 flex items-center">
+        <div class="p-5 flex items-center bg-bg-deep">
           <div class="relative w-full">
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style="color: var(--text-muted);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/>
-            </svg>
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
             <input
                 v-model="searchQuery"
                 type="text"
                 id="market-search"
-                placeholder="Search coins..."
-                class="input-glass w-full"
-                style="padding-left: 36px; padding-top: 10px; padding-bottom: 10px; font-size: 0.875rem;"
+                placeholder="Search ticker..."
+                class="input-mono w-full pl-10"
             >
           </div>
         </div>
@@ -122,34 +115,30 @@ onMounted(async () => {
 
       <!-- Loading Skeleton -->
       <div v-if="isLoading" class="animate-fade-in-up">
-        <div class="glass-card-static overflow-hidden">
-          <!-- Skeleton header -->
-          <div class="p-5 flex items-center space-x-4" style="border-bottom: 1px solid var(--border-subtle);">
-            <div class="shimmer" style="width: 100px; height: 14px;"></div>
+        <div class="mono-card-static overflow-hidden">
+          <div class="p-5 flex items-center space-x-4 border-b border-border-subtle bg-bg-deep">
+            <div class="shimmer w-24 h-4"></div>
           </div>
-          <!-- Skeleton rows -->
-          <div v-for="i in 6" :key="i" class="flex items-center space-x-6 p-5" :style="{ borderBottom: i < 6 ? '1px solid var(--border-subtle)' : 'none' }">
-            <div class="shimmer" style="width: 36px; height: 36px; border-radius: 50%;"></div>
-            <div class="shimmer" style="width: 120px; height: 14px;"></div>
-            <div class="shimmer ml-auto" style="width: 80px; height: 14px;"></div>
-            <div class="shimmer" style="width: 60px; height: 14px;"></div>
-            <div class="shimmer" style="width: 70px; height: 28px; border-radius: 8px;"></div>
+          <div v-for="i in 6" :key="i" class="flex items-center space-x-6 p-5 border-b border-border-subtle last:border-0">
+            <div class="shimmer w-8 h-8 rounded-sm"></div>
+            <div class="shimmer w-24 h-4"></div>
+            <div class="shimmer ml-auto w-16 h-4"></div>
+            <div class="shimmer w-16 h-4"></div>
+            <div class="shimmer w-20 h-8 rounded-sm"></div>
           </div>
         </div>
       </div>
 
       <!-- Error State -->
       <div v-else-if="errorMessage" class="animate-fade-in-up">
-        <div class="glass-card p-8 text-center">
-          <div class="mx-auto mb-4" style="width: 56px; height: 56px; border-radius: 50%; background: rgba(239,68,68,0.1); display: flex; align-items: center; justify-content: center;">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" style="color: #f87171;" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
-            </svg>
+        <div class="mono-card p-8 text-center border-red-500/50">
+          <div class="mx-auto mb-4 w-12 h-12 flex items-center justify-center border border-red-500 bg-red-500/10 text-red-500 rounded-sm">
+            <AlertTriangle :size="24" />
           </div>
-          <p class="text-lg font-semibold mb-2" style="color: #fca5a5;">Connection Error</p>
-          <p class="text-sm mb-6" style="color: var(--text-muted);">{{ errorMessage }}</p>
+          <p class="text-lg font-bold mb-2 uppercase text-red-400">System Error</p>
+          <p class="text-sm font-mono mb-6 text-text-muted">{{ errorMessage }}</p>
           <button @click="getCoins" class="btn-outline px-6 py-2.5 text-sm">
-            Try Again
+            Retry Connection
           </button>
         </div>
       </div>
@@ -167,7 +156,7 @@ onMounted(async () => {
 .stat-icon-box {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;

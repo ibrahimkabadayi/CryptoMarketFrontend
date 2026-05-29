@@ -3,6 +3,7 @@ import {useMarketNewsStore} from "@/stores/marketNewsStore";
 import {ref, onMounted} from "vue";
 import type {MarketNews} from "@/types/marketNewsTypes";
 import {useRoute, useRouter} from "vue-router";
+import { ArrowLeft, Loader2 } from 'lucide-vue-next';
 
 const store = useMarketNewsStore();
 const route = useRoute();
@@ -13,7 +14,7 @@ const formatDate = (date: string | Date | undefined) => {
   if (!date) return '';
   const d = new Date(date);
   return d.toLocaleString('en-US', {
-    month: 'long',
+    month: 'short',
     day: 'numeric',
     year: 'numeric',
     hour: '2-digit',
@@ -37,47 +38,45 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen text-white p-6 md:p-8">
+  <div class="min-h-screen text-white p-6 md:p-8 bg-matte-black">
     <div class="max-w-4xl mx-auto">
       <button 
         @click="goBack" 
-        class="mb-6 flex items-center text-sm text-gray-400 hover:text-white transition-colors group"
+        class="mb-6 flex items-center text-sm font-bold uppercase tracking-widest text-text-muted hover:text-volt-green transition-colors group"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
-        Back to News
+        <ArrowLeft :size="16" class="mr-2 transform group-hover:-translate-x-1 transition-transform" />
+        Return
       </button>
 
       <div v-if="news" class="animate-fade-in-up">
-        <div class="glass-card p-8 md:p-12">
-          <div class="flex flex-wrap items-center gap-4 mb-6">
-            <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+        <div class="mono-card p-8 md:p-12 border border-border-subtle bg-bg-surface">
+          <div class="flex flex-wrap items-center gap-4 mb-8 border-b border-border-subtle pb-6">
+            <span class="px-3 py-1 text-xs font-bold bg-bg-deep text-volt-green border border-volt-green uppercase tracking-widest">
               {{ news.source }}
             </span>
-            <span class="text-sm text-gray-500">
+            <span class="text-xs font-mono text-text-secondary">
               {{ formatDate(news.publishedAt) }}
             </span>
           </div>
 
-          <h1 class="text-3xl md:text-4xl font-bold mb-8 leading-tight">
+          <h1 class="text-3xl md:text-5xl font-extrabold mb-8 leading-tight uppercase tracking-wide text-white">
             {{ news.title }}
           </h1>
 
           <div class="prose prose-invert max-w-none">
-            <p class="text-gray-300 text-lg leading-relaxed whitespace-pre-wrap">
+            <p class="text-text-secondary font-mono text-lg leading-relaxed whitespace-pre-wrap">
               {{ news.content }}
             </p>
           </div>
 
-          <div class="mt-12 pt-8 border-t border-white/10">
-            <h4 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Assets</h4>
+          <div class="mt-12 pt-8 border-t border-border-subtle">
+            <h4 class="text-xs font-bold text-text-muted uppercase tracking-widest mb-4">Related Assets</h4>
             <div class="flex flex-wrap gap-3">
               <router-link
                 v-for="symbol in news.relatedSymbols"
                 :key="symbol"
                 :to="{ name: 'coin-detail', params: { symbol } }"
-                class="px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-sm font-medium"
+                class="px-4 py-2 bg-bg-deep border border-border-subtle hover:border-volt-green hover:text-volt-green transition-colors text-sm font-bold uppercase tracking-widest"
               >
                 {{ symbol }}
               </router-link>
@@ -86,13 +85,13 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div v-else-if="store.isLoading" class="flex justify-center py-20">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div v-else-if="store.isLoading" class="flex justify-center py-20 text-volt-green">
+        <Loader2 :size="48" class="animate-spin" />
       </div>
 
-      <div v-else class="text-center py-20 glass-card">
-        <p class="text-gray-400">News article not found.</p>
-        <button @click="goBack" class="mt-4 btn-outline px-6 py-2">Go Back</button>
+      <div v-else class="text-center py-20 mono-card border border-border-subtle bg-bg-surface">
+        <p class="text-text-muted font-mono uppercase tracking-widest mb-4">Intel file not found.</p>
+        <button @click="goBack" class="btn-outline px-6 py-2 text-xs">Return</button>
       </div>
     </div>
   </div>

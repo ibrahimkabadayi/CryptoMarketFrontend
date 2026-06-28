@@ -34,10 +34,5 @@ export type SetLimitOrderRequest = {
     symbol: string;
     targetPrice: number;
     amount: number;
-    orderType: OrderType;
-}
-
-enum OrderType {
-    buy = "Buy",
-    sell = "Sell",
+    orderType: 'Buy' | 'Sell';
 }

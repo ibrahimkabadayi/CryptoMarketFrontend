@@ -6,7 +6,8 @@ import type { Coin, PriceHistory } from '@/types/marketTypes';
 import VueApexCharts from 'vue3-apexcharts';
 import {useMarketNewsStore} from "@/stores/marketNewsStore";
 import NewsList from "@/components/market/NewsList.vue";
-import { Newspaper } from 'lucide-vue-next';
+import { Newspaper, TrendingUp, TrendingDown } from 'lucide-vue-next';
+import { marketApi } from '@/api/marketApi';
 
 const route = useRoute();
 const marketStore = useMarketStore();
@@ -140,6 +141,46 @@ watch(selectedTimeframe, async (newTimeframe) => {
     console.error('Fetch history error:', error);
   }
 });
+
+// Limit Order Logic
+const orderType = ref<'Buy' | 'Sell'>('Buy');
+const targetPrice = ref<number | ''>('');
+const orderAmount = ref<number | ''>('');
+const orderSubmitting = ref(false);
+const orderSuccess = ref(false);
+const orderError = ref('');
+
+const submitLimitOrder = async () => {
+  if (!targetPrice.value || !orderAmount.value) {
+    orderError.value = 'Target price and amount are required';
+    return;
+  }
+
+  orderSubmitting.value = true;
+  orderSuccess.value = false;
+  orderError.value = '';
+
+  try {
+    await marketApi.setLimitOrder({
+      symbol: String(route.params.symbol),
+      targetPrice: Number(targetPrice.value),
+      amount: Number(orderAmount.value),
+      orderType: orderType.value
+    });
+
+    orderSuccess.value = true;
+    targetPrice.value = '';
+    orderAmount.value = '';
+
+    setTimeout(() => {
+      orderSuccess.value = false;
+    }, 3000);
+  } catch (error: any) {
+    orderError.value = error?.response?.data?.message || 'Failed to place order';
+  } finally {
+    orderSubmitting.value = false;
+  }
+};
 </script>
 
 <template>
@@ -207,6 +248,97 @@ watch(selectedTimeframe, async (newTimeframe) => {
               :options="chartOptions"
               :series="chartSeries">
           </VueApexCharts>
+      </div>
+
+      <!-- Limit Order Section -->
+      <div class="mono-card p-6 bg-bg-surface border-l-4 border-volt-green">
+        <h2 class="text-xl font-extrabold mb-6 uppercase tracking-wider flex items-center gap-2">
+          <TrendingUp :size="20" class="text-volt-green" />
+          Set Limit Order
+        </h2>
+
+        <!-- Order Type Toggle -->
+        <div class="flex gap-3 mb-6">
+          <button
+            @click="orderType = 'Buy'"
+            class="flex-1 px-6 py-3 font-mono text-sm font-bold uppercase tracking-widest border-2 transition-all"
+            :class="orderType === 'Buy'
+              ? 'bg-volt-green text-black border-volt-green'
+              : 'bg-transparent text-text-secondary border-border-subtle hover:border-volt-green hover:text-white'"
+          >
+            <TrendingUp :size="16" class="inline mr-2" />
+            Buy
+          </button>
+          <button
+            @click="orderType = 'Sell'"
+            class="flex-1 px-6 py-3 font-mono text-sm font-bold uppercase tracking-widest border-2 transition-all"
+            :class="orderType === 'Sell'
+              ? 'bg-red-500 text-black border-red-500'
+              : 'bg-transparent text-text-secondary border-border-subtle hover:border-red-500 hover:text-white'"
+          >
+            <TrendingDown :size="16" class="inline mr-2" />
+            Sell
+          </button>
+        </div>
+
+        <!-- Order Form -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label class="label-tech mb-2 block text-text-secondary">Target Price (USD)</label>
+            <input
+              v-model="targetPrice"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              class="w-full px-4 py-3 bg-bg-deep border border-border-subtle text-white font-mono focus:outline-none focus:border-volt-green transition-colors"
+            />
+          </div>
+
+          <div>
+            <label class="label-tech mb-2 block text-text-secondary">Amount ({{ coinData?.symbol }})</label>
+            <input
+              v-model="orderAmount"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              class="w-full px-4 py-3 bg-bg-deep border border-border-subtle text-white font-mono focus:outline-none focus:border-volt-green transition-colors"
+            />
+          </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div v-if="targetPrice && orderAmount" class="mb-6 p-4 bg-bg-deep border border-border-subtle">
+          <div class="label-tech mb-2 text-text-secondary">Order Summary</div>
+          <div class="flex justify-between items-center font-mono text-sm">
+            <span class="text-text-muted">Total Value:</span>
+            <span class="text-white font-bold">{{ formatCurrency(Number(targetPrice) * Number(orderAmount)) }}</span>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          @click="submitLimitOrder"
+          :disabled="orderSubmitting || !targetPrice || !orderAmount"
+          class="w-full px-6 py-4 font-mono text-sm font-bold uppercase tracking-widest border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          :class="orderType === 'Buy'
+            ? 'bg-volt-green text-black border-volt-green hover:bg-transparent hover:text-volt-green'
+            : 'bg-red-500 text-black border-red-500 hover:bg-transparent hover:text-red-500'"
+        >
+          <span v-if="orderSubmitting">Processing...</span>
+          <span v-else>Place {{ orderType }} Order</span>
+        </button>
+
+        <!-- Success Message -->
+        <div v-if="orderSuccess" class="mt-4 p-4 bg-volt-green/10 border border-volt-green text-volt-green font-mono text-sm">
+          ✓ Limit order placed successfully
+        </div>
+
+        <!-- Error Message -->
+        <div v-if="orderError" class="mt-4 p-4 bg-red-500/10 border border-red-500 text-red-500 font-mono text-sm">
+          ✗ {{ orderError }}
+        </div>
       </div>
 
       <!-- News Section -->

@@ -2,7 +2,7 @@ import {defineStore} from 'pinia';
 import {ref} from 'vue';
 import {portfolioApi} from "@/api/portfolioApi";
 import {useMarketStore} from "@/stores/marketStore";
-import {Dashboard} from "@/types/portfolioTypes";
+import type {Dashboard} from "@/types/portfolioTypes";
 import {signalRService} from '@/api/signalRApi';
 
 export const usePortfolioStore = defineStore('portfolio', () => {

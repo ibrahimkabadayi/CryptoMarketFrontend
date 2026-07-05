@@ -261,7 +261,11 @@ const formatTimeAgo = (dateString?: string): string => {
         </div>
 
         <div class="md:text-right">
-          <div class="text-4xl font-mono font-bold text-white">
+          <div class="text-4xl font-mono font-bold transition-colors duration-500" :class="{
+            'text-volt-green': coinData?.priceChangeStatus === 'up',
+            'text-red-500': coinData?.priceChangeStatus === 'down',
+            'text-white': !coinData?.priceChangeStatus || coinData?.priceChangeStatus === 'none'
+          }">
             {{ formatCurrency(coinData?.currentPrice) }}
           </div>
           <div class="stat-badge positive mt-2 inline-flex items-center gap-1">

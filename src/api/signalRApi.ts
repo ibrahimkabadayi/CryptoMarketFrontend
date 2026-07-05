@@ -1,87 +1,128 @@
 import * as signalR from "@microsoft/signalr";
 
 class SignalRService{
-    private connection: signalR.HubConnection | null = null;
+    private connections: Map<string, signalR.HubConnection> = new Map();
     private readonly baseUrl: string;
 
     constructor() {
-        this.baseUrl = "http://localhost:5000"
+        // Backend portunuzun gerçekten 5000 olduğundan emin olun (Örn: 5001, 7123 vb. olabilir)
+        this.baseUrl = "http://localhost:5000";
     }
 
-    public async startConnection(hubUrl: string, isAuthRequired: boolean = false): Promise<void> {
-        if (this.connection) {
-            console.log("Connection already exists.");
+    // 1. ADIM: Sadece bağlantı nesnesini oluşturur (Başlatmaz)
+    public buildConnection(hubUrl: string, isAuthRequired: boolean = false): void {
+        if (this.connections.has(hubUrl)) {
+            console.log(`SignalR Connection for ${hubUrl} already exists.`);
             return;
         }
 
-        try{
-            const options: signalR.IHttpConnectionOptions = {
-                headers: {
-                    'Idempotency-Key': crypto.randomUUID()
-                }
-            };
+        const options: signalR.IHttpConnectionOptions = {
+            headers: { 'Idempotency-Key': crypto.randomUUID() },
+            skipNegotiation: false,
+            transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling
+        };
 
-            if (isAuthRequired){
-                options.accessTokenFactory = () => localStorage.getItem('token') || "";
+        if (isAuthRequired) {
+            options.accessTokenFactory = () => localStorage.getItem('token') || "";
+        }
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl(this.baseUrl + hubUrl, options)
+            .withAutomaticReconnect()
+            .build();
+
+        connection.onclose((error) => {
+            console.warn(`SignalR Connection closed for ${hubUrl}: `, error);
+        });
+
+        this.connections.set(hubUrl, connection);
+    }
+
+    // 2. ADIM: Bağlantıyı başlatır
+    public async startConnection(hubUrl?: string): Promise<void> {
+        if (hubUrl) {
+            const conn = this.connections.get(hubUrl);
+            if (!conn) {
+                console.error(`Connection for ${hubUrl} is not built yet.`);
+                return;
             }
-
-            this.connection = new signalR.HubConnectionBuilder()
-               .withUrl(this.baseUrl + hubUrl, options)
-               .withAutomaticReconnect()
-               .build();
-
-            console.log(this.connection.baseUrl);
-
-            await this.connection.start();
-
-            this.connection.onclose((error) => {
-                console.warn("SignalR Connection closed: ", error);
-                this.connection = null;
-            });
-
-        }catch (err){
-            console.error("Error while starting connection: ", err);
-            setTimeout(() => this.startConnection(hubUrl), 5000);
-        }
-    }
-
-    public on(eventName: string, callback:(...args: any[]) => void){
-        if (!this.connection) {
-            console.log("SignalR Connection not established yet.");
+            if (conn.state === signalR.HubConnectionState.Disconnected) {
+                try {
+                    await conn.start();
+                    console.log(`SignalR Connected to: ${hubUrl}`);
+                } catch (err) {
+                    console.error(`Error while starting connection for ${hubUrl}: `, err);
+                    setTimeout(() => this.startConnection(hubUrl), 5000);
+                }
+            }
             return;
         }
-        this.connection.on(eventName, callback);
+
+        // Start all if no hubUrl provided (legacy support)
+        for (const [url, conn] of this.connections.entries()) {
+            if (conn.state === signalR.HubConnectionState.Disconnected) {
+                try {
+                    await conn.start();
+                    console.log(`SignalR Connected to: ${url}`);
+                } catch (err) {
+                    console.error(`Error while starting connection for ${url}: `, err);
+                }
+            }
+        }
     }
 
-    public async invoke(methodName: string, ...args: any[]):  Promise<any> {
-        if (!this.connection) {
-            console.error("SignalR Connection not started yet.");
+    public on(eventName: string, callback: (...args: any[]) => void, hubUrl?: string) {
+        if (hubUrl) {
+            const conn = this.connections.get(hubUrl);
+            if (conn) {
+                conn.on(eventName, callback);
+            } else {
+                console.error(`Cannot register '${eventName}'. Connection for ${hubUrl} not built.`);
+            }
+            return;
+        }
+        // If hubUrl not specified, register on all (might be what they want if they didn't specify)
+        this.connections.forEach(conn => conn.on(eventName, callback));
+    }
+
+    public async invoke(methodName: string, hubUrl: string, ...args: any[]): Promise<any> {
+        const conn = this.connections.get(hubUrl);
+        if (!conn) {
+            console.error(`SignalR Connection for ${hubUrl} not built.`);
             return;
         }
         try {
-            return await this.connection.invoke(methodName, ...args);
+            return await conn.invoke(methodName, ...args);
         } catch (err) {
-            console.error(`Error invoking ${methodName}:`, err);
+            console.error(`Error invoking ${methodName} on ${hubUrl}:`, err);
             throw err;
         }
     }
 
-    public off(eventName: string){
-        if (this.connection) {
-            this.connection.off(eventName);
+    public off(eventName: string, hubUrl?: string) {
+        if (hubUrl) {
+            const conn = this.connections.get(hubUrl);
+            if (conn) conn.off(eventName);
+            return;
         }
+        this.connections.forEach(conn => conn.off(eventName));
     }
 
-    public async stopConnection(): Promise<void> {
-        if (this.connection) {
-            try {
-                await this.connection.stop();
-                this.connection = null;
-                console.log("SignalR Connection stopped.");
-            } catch (err) {
-                console.error("Error while stopping connection: ", err);
+    public async stopConnection(hubUrl?: string): Promise<void> {
+        if (hubUrl) {
+            const conn = this.connections.get(hubUrl);
+            if (conn) {
+                await conn.stop();
+                this.connections.delete(hubUrl);
+                console.log(`SignalR Connection for ${hubUrl} stopped.`);
             }
+            return;
         }
+        for (const [url, conn] of this.connections.entries()) {
+            await conn.stop();
+            console.log(`SignalR Connection for ${url} stopped.`);
+        }
+        this.connections.clear();
     }
 }
 

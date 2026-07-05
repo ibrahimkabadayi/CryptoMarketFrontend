@@ -88,7 +88,11 @@ const getMockChange = (symbol: string) => {
 
           <td class="font-mono font-bold text-text-secondary">{{ coin.symbol }}</td>
 
-          <td class="text-right font-mono font-bold text-white">
+          <td class="text-right font-mono font-bold transition-colors duration-500" :class="{
+            'text-volt-green': coin.priceChangeStatus === 'up',
+            'text-red-500': coin.priceChangeStatus === 'down',
+            'text-white': !coin.priceChangeStatus || coin.priceChangeStatus === 'none'
+          }">
             ${{ coin.currentPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00' }}
           </td>
 

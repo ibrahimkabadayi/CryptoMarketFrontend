@@ -51,11 +51,41 @@ export const useMarketStore = defineStore('market', () => {
         const hubUrl = '/hubs/market';
         signalRService.buildConnection(hubUrl);
 
+        signalRService.on('ReceivePriceUpdate', (updateInfo: any) => {
+            const incomingSymbol = updateInfo.symbol || updateInfo.Symbol;
+            const incomingPrice = updateInfo.price || updateInfo.Price;
 
-        signalRService.on('ReceivePriceUpdate', (updateInfo: PriceUpdateMessage) => {
-            const coin = coins.value.find(c => c.symbol === updateInfo.symbol);
-            if (coin) {
-                coin.currentPrice = updateInfo.price;
+            if (!incomingSymbol) {
+                console.error("SignalR Update Missing Symbol:", updateInfo);
+                return;
+            }
+
+            const index = coins.value.findIndex(c => c.symbol === incomingSymbol);
+
+            if (index !== -1) {
+                const oldPrice = coins.value[index].currentPrice;
+                let status: 'up' | 'down' | 'none' = 'none';
+
+                if (incomingPrice > oldPrice) status = 'up';
+                else if (incomingPrice < oldPrice) status = 'down';
+
+                coins.value[index] = {
+                    ...coins.value[index],
+                    currentPrice: incomingPrice,
+                    priceChangeStatus: status
+                };
+
+                // Reset status after animation duration
+                setTimeout(() => {
+                    if (coins.value[index] && coins.value[index].currentPrice === incomingPrice) {
+                        coins.value[index] = {
+                            ...coins.value[index],
+                            priceChangeStatus: 'none'
+                        };
+                    }
+                }, 2000);
+            } else {
+                console.warn(`Coin with symbol ${incomingSymbol} not found in store.`);
             }
         }, hubUrl);
 

@@ -48,18 +48,22 @@ export const useMarketStore = defineStore('market', () => {
     }
 
     const initSignalR = async () => {
-        await signalRService.startConnection('/hubs/market');
+        const hubUrl = '/hubs/market';
+        signalRService.buildConnection(hubUrl);
+
 
         signalRService.on('ReceivePriceUpdate', (updateInfo: PriceUpdateMessage) => {
             const coin = coins.value.find(c => c.symbol === updateInfo.symbol);
             if (coin) {
                 coin.currentPrice = updateInfo.price;
             }
-        });
+        }, hubUrl);
 
         signalRService.on('ReceiveHistoryUpdate', (updateInfo: HistoryUpdateMessage) => {
 
-        });
+        }, hubUrl);
+
+        await signalRService.startConnection(hubUrl);
     };
 
     return {

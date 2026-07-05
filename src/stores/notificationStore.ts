@@ -101,14 +101,17 @@ export const useNotificationStore = defineStore('notification', () => {
 
     const initNotificationSignalR = async () => {
         try {
-            await signalRService.startConnection('/hubs/notifications', true);
+            const hubUrl = '/hubs/notifications';
+            signalRService.buildConnection(hubUrl, true);
 
             signalRService.on('ReceiveNotification', (notification: NotificationDto) => {
                 notifications.value.unshift(notification);
                 if (!notification.isRead) {
                     unreadCount.value++;
                 }
-            });
+            }, hubUrl);
+
+            await signalRService.startConnection(hubUrl);
         } catch (error) {
             console.error('Failed to initialize notification SignalR:', error);
         }

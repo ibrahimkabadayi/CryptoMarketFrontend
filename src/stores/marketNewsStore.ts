@@ -35,6 +35,9 @@ export const useMarketNewsStore = defineStore('market-news', () => {
     };
 
     const initPortfolioSignalR = async () => {
+        const hubUrl = '/hubs/price-alerts';
+        signalRService.buildConnection(hubUrl, true)
+
         signalRService.on('PublishNews', (data: MarketNews) => {
             if (coinSymbol.value === "") {
                 news.value.unshift(data);
@@ -42,7 +45,9 @@ export const useMarketNewsStore = defineStore('market-news', () => {
             else if (data.relatedSymbols.includes(coinSymbol.value)) {
                 news.value.unshift(data);
             }
-        });
+        }, hubUrl);
+
+        await signalRService.startConnection(hubUrl);
     };
 
     return {

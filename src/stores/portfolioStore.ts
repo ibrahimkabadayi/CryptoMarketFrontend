@@ -64,19 +64,22 @@ export const usePortfolioStore = defineStore('portfolio', () => {
     };
 
     const initPortfolioSignalR = async () => {
-        await signalRService.startConnection('hubs/portfolio', true);
+        const hubUrl = '/hubs/portfolio';
+        signalRService.buildConnection(hubUrl, true);
         
         signalRService.on('UpdatePortfolio', (data) => {
             dashboard.value = {...dashboard.value, ...data};
-        });
+        }, hubUrl);
 
         signalRService.on('NewTransaction', (transaction: any) => {
             dashboard.value.recentTransactions.unshift(transaction);
-        });
+        }, hubUrl);
 
         signalRService.on('UpdateBalance', (balance: number) => {
             dashboard.value.fiatBalance = balance;
-        });
+        }, hubUrl);
+
+        await signalRService.startConnection(hubUrl);
     };
 
     return {

@@ -6,6 +6,7 @@ import AssetTable from "@/components/portfolio/AssetTable.vue";
 import TransactionTable from "@/components/portfolio/TransactionTable.vue";
 import { Download, Upload, Wallet, Copy, AlertTriangle, CircleDollarSign, Landmark } from 'lucide-vue-next';
 
+import { ref } from "vue";
 const portfolioStore = usePortfolioStore();
 
 const {dashboard, isLoading, errorMessage} = storeToRefs(portfolioStore)
@@ -14,31 +15,57 @@ const getDashboard = async () => {
   await portfolioStore.fetchDashboard();
 }
 
-const handleDeposit = async () => {
-  const amountStr = prompt("Enter deposit amount:");
-  if (!amountStr) return;
-  const amount = parseFloat(amountStr);
-  if (isNaN(amount) || amount <= 0) {
-    alert("Please enter a valid amount");
-    return;
-  }
-  await portfolioStore.deposit(amount);
+// Transaction Modal State
+const showTransactionModal = ref(false);
+const transactionType = ref<'deposit'|'withdraw'>('deposit');
+const transactionAmount = ref<number | ''>('');
+const transactionError = ref('');
+const isSubmitting = ref(false);
+
+const openTransactionModal = (type: 'deposit'|'withdraw') => {
+  transactionType.value = type;
+  transactionAmount.value = '';
+  transactionError.value = '';
+  showTransactionModal.value = true;
 };
 
-const handleWithdraw = async () => {
-  const amountStr = prompt("Enter withdraw amount:");
-  if (!amountStr) return;
-  const amount = parseFloat(amountStr);
-  if (isNaN(amount) || amount <= 0) {
-    alert("Please enter a valid amount");
-    return;
-  }
-  if (amount > dashboard.value.fiatBalance){
-    alert(`Not enough fiat!`);
-    return;
-  }
-  await portfolioStore.withdraw(amount);
+const closeTransactionModal = () => {
+  showTransactionModal.value = false;
 };
+
+const submitTransaction = async () => {
+  const amount = Number(transactionAmount.value);
+  if (!amount || amount <= 0) {
+    transactionError.value = 'Please enter a valid positive amount.';
+    return;
+  }
+  
+  if (transactionType.value === 'withdraw' && dashboard.value) {
+    if (amount > dashboard.value.fiatBalance) {
+      transactionError.value = 'Not enough fiat balance for withdrawal.';
+      return;
+    }
+  }
+
+  isSubmitting.value = true;
+  transactionError.value = '';
+
+  try {
+    if (transactionType.value === 'deposit') {
+      await portfolioStore.deposit(amount);
+    } else {
+      await portfolioStore.withdraw(amount);
+    }
+    closeTransactionModal();
+  } catch (error: any) {
+    transactionError.value = error.message || 'Transaction failed.';
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
+const handleDeposit = () => openTransactionModal('deposit');
+const handleWithdraw = () => openTransactionModal('withdraw');
 
 const handleCoinBought = async (symbol: string) => {
   const amountStr = prompt(`Enter amount of ${symbol} to buy:`);
@@ -169,6 +196,63 @@ onMounted(() => {
         <div class="animate-fade-in-up animate-delay-4"><TransactionTable :transactions="dashboard.recentTransactions" /></div>
       </div>
     </div>
+
+    <!-- Transaction Modal -->
+    <transition name="modal-fade">
+      <div v-if="showTransactionModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="mono-card w-full max-w-md bg-bg-surface border-l-4" :class="transactionType === 'deposit' ? 'border-volt-green' : 'border-red-500'" @click.stop>
+          <div class="p-6">
+            <h2 class="text-xl font-extrabold mb-2 uppercase tracking-wider flex items-center gap-2">
+              <Download v-if="transactionType === 'deposit'" :size="20" class="text-volt-green" />
+              <Upload v-else :size="20" class="text-red-500" />
+              {{ transactionType }} Fiat
+            </h2>
+            <p class="font-mono text-sm text-text-secondary mb-6">
+              Available Balance: <span class="text-white">${{ dashboard?.fiatBalance?.toLocaleString(undefined,{minimumFractionDigits:2}) || '0.00' }}</span>
+            </p>
+
+            <div class="mb-6">
+              <label class="label-tech mb-2 block text-text-secondary">Amount (USD)</label>
+              <input
+                v-model="transactionAmount"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                class="w-full px-4 py-3 bg-bg-deep border border-border-subtle text-white font-mono focus:outline-none transition-colors"
+                :class="transactionType === 'deposit' ? 'focus:border-volt-green' : 'focus:border-red-500'"
+                @keyup.enter="submitTransaction"
+              />
+            </div>
+
+            <div v-if="transactionError" class="mb-6 p-4 bg-red-500/10 border border-red-500 text-red-500 font-mono text-sm">
+              ✗ {{ transactionError }}
+            </div>
+
+            <div class="flex gap-3">
+              <button
+                @click="closeTransactionModal"
+                class="flex-1 px-4 py-3 font-mono text-sm font-bold uppercase tracking-widest border border-border-subtle text-text-secondary hover:text-white hover:bg-bg-deep transition-all"
+                :disabled="isSubmitting"
+              >
+                Cancel
+              </button>
+              <button
+                @click="submitTransaction"
+                :disabled="isSubmitting || !transactionAmount"
+                class="flex-1 px-4 py-3 font-mono text-sm font-bold uppercase tracking-widest border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                :class="transactionType === 'deposit'
+                  ? 'bg-volt-green text-black border-volt-green hover:bg-transparent hover:text-volt-green'
+                  : 'bg-red-500 text-black border-red-500 hover:bg-transparent hover:text-red-500'"
+              >
+                <span v-if="isSubmitting">Processing...</span>
+                <span v-else>Confirm</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -220,5 +304,36 @@ onMounted(() => {
 .copy-btn:hover {
   color: var(--text-primary);
   border-color: var(--volt-green);
+}
+
+/* Modal Animations */
+.modal-fade-enter-active {
+  animation: modalFadeIn 0.2s ease-out forwards;
+}
+
+.modal-fade-leave-active {
+  animation: modalFadeOut 0.15s ease-in forwards;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes modalFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
 }
 </style>

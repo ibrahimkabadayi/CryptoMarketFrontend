@@ -53,8 +53,13 @@ const buyCoin = async (coin: Coin) => {
   await portfolioStore.buyCoin(coin.symbol, amount);
 };
 
+const getDashboard = async () => {
+  await portfolioStore.fetchDashboard();
+}
+
 onMounted(async () => {
   await getCoins();
+  await getDashboard();
   await marketStore.initSignalR();
 });
 </script>

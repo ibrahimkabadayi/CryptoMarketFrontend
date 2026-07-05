@@ -5,7 +5,6 @@ import { useMarketStore } from '@/stores/marketStore';
 import { useLimitOrderStore } from '@/stores/limitOrderStore';
 import { usePortfolioStore } from '@/stores/portfolioStore';
 import type { Coin, PriceHistory } from '@/types/marketTypes';
-import { LimitOrderType } from '@/types/limitOrderTypes';
 import type { LimitOrderDto } from '@/types/limitOrderTypes';
 import VueApexCharts from 'vue3-apexcharts';
 import {useMarketNewsStore} from "@/stores/marketNewsStore";
@@ -19,7 +18,10 @@ const limitOrderStore = useLimitOrderStore();
 const portfolioStore = usePortfolioStore();
 
 const isLoading = ref(true);
-const coinData = ref<Coin | null>(null);
+const coinData = computed(() => {
+  const symbol = String(route.params.symbol);
+  return marketStore.coins?.find((c: Coin) => c.symbol === symbol) || null;
+});
 const timeframes = [
   { label: '1H', value: '1h' },
   { label: '24H', value: '1d' },
@@ -61,7 +63,7 @@ const chartOptions = computed(() => ({
       show: false
     },
     animations: {
-      enabled: false // Brutalist feel: no animations
+      enabled: false
     }
   },
   theme: {
@@ -124,11 +126,6 @@ onMounted(async () => {
 
     await marketStore.fetchPriceHistory(symbol, selectedTimeframe.value);
 
-    const foundCoin = marketStore.coins?.find((c: Coin) => c.symbol === symbol);
-    if (foundCoin) {
-      coinData.value = foundCoin;
-    }
-
     await Promise.all([
       marketNewsStore.fetchNewsBySymbol(symbol),
       portfolioStore.fetchDashboard(),
@@ -151,13 +148,11 @@ watch(selectedTimeframe, async (newTimeframe) => {
   }
 });
 
-// Limit Order Logic
 const orderType = ref<'Buy' | 'Sell'>('Buy');
 const targetPrice = ref<number | ''>('');
 const orderAmount = ref<number | ''>('');
 const orderSubmitting = ref(false);
 
-// Filter orders for current coin
 const currentSymbolOrders = computed(() => {
   const symbol = String(route.params.symbol);
   return limitOrderStore.sortedOrders.filter(
@@ -165,7 +160,6 @@ const currentSymbolOrders = computed(() => {
   );
 });
 
-// Edit state
 const editingOrderId = ref<string | null>(null);
 const editTargetPrice = ref<number>(0);
 const editAmount = ref<number>(0);

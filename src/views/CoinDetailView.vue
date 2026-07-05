@@ -2,16 +2,21 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useMarketStore } from '@/stores/marketStore';
+import { useLimitOrderStore } from '@/stores/limitOrderStore';
+import { usePortfolioStore } from '@/stores/portfolioStore';
 import type { Coin, PriceHistory } from '@/types/marketTypes';
+import { LimitOrderType } from '@/types/limitOrderTypes';
+import type { LimitOrderDto } from '@/types/limitOrderTypes';
 import VueApexCharts from 'vue3-apexcharts';
 import {useMarketNewsStore} from "@/stores/marketNewsStore";
 import NewsList from "@/components/market/NewsList.vue";
-import { Newspaper, TrendingUp, TrendingDown } from 'lucide-vue-next';
-import { marketApi } from '@/api/marketApi';
+import { Newspaper, TrendingUp, TrendingDown, Pencil, Trash2, Check, X } from 'lucide-vue-next';
 
 const route = useRoute();
 const marketStore = useMarketStore();
 const marketNewsStore = useMarketNewsStore();
+const limitOrderStore = useLimitOrderStore();
+const portfolioStore = usePortfolioStore();
 
 const isLoading = ref(true);
 const coinData = ref<Coin | null>(null);
@@ -124,7 +129,11 @@ onMounted(async () => {
       coinData.value = foundCoin;
     }
 
-    await marketNewsStore.fetchNewsBySymbol(symbol);
+    await Promise.all([
+      marketNewsStore.fetchNewsBySymbol(symbol),
+      portfolioStore.fetchDashboard(),
+      limitOrderStore.fetchAllOrders()
+    ]);
 
   } catch (error) {
     console.error('Fetch error:', error);
@@ -147,39 +156,88 @@ const orderType = ref<'Buy' | 'Sell'>('Buy');
 const targetPrice = ref<number | ''>('');
 const orderAmount = ref<number | ''>('');
 const orderSubmitting = ref(false);
-const orderSuccess = ref(false);
-const orderError = ref('');
+
+// Filter orders for current coin
+const currentSymbolOrders = computed(() => {
+  const symbol = String(route.params.symbol);
+  return limitOrderStore.sortedOrders.filter(
+    o => o.symbol?.toUpperCase() === symbol.toUpperCase()
+  );
+});
+
+// Edit state
+const editingOrderId = ref<string | null>(null);
+const editTargetPrice = ref<number>(0);
+const editAmount = ref<number>(0);
+
+const startEdit = (order: LimitOrderDto) => {
+  editingOrderId.value = order.id;
+  editTargetPrice.value = order.targetPrice;
+  editAmount.value = order.amount;
+};
+
+const cancelEdit = () => {
+  editingOrderId.value = null;
+};
+
+const saveEdit = async (orderId: string) => {
+  const success = await limitOrderStore.updateOrder(orderId, editAmount.value, editTargetPrice.value);
+  if (success) {
+    editingOrderId.value = null;
+  }
+};
+
+const deleteOrder = async (orderId: string) => {
+  await limitOrderStore.deleteOrder(orderId);
+};
 
 const submitLimitOrder = async () => {
   if (!targetPrice.value || !orderAmount.value) {
-    orderError.value = 'Target price and amount are required';
+    limitOrderStore.errorMessage = 'Target price and amount are required';
+    return;
+  }
+
+  const walletId = portfolioStore.dashboard?.walletId;
+  if (!walletId) {
+    limitOrderStore.errorMessage = 'Wallet not found. Please visit your portfolio first.';
     return;
   }
 
   orderSubmitting.value = true;
-  orderSuccess.value = false;
-  orderError.value = '';
+  limitOrderStore.clearMessages();
 
   try {
-    await marketApi.setLimitOrder({
-      symbol: String(route.params.symbol),
-      targetPrice: Number(targetPrice.value),
-      amount: Number(orderAmount.value),
-      orderType: orderType.value
-    });
+    const success = await limitOrderStore.createOrder(
+      walletId,
+      String(route.params.symbol),
+      Number(targetPrice.value),
+      Number(orderAmount.value),
+      orderType.value
+    );
 
-    orderSuccess.value = true;
-    targetPrice.value = '';
-    orderAmount.value = '';
-
-    setTimeout(() => {
-      orderSuccess.value = false;
-    }, 3000);
-  } catch (error: any) {
-    orderError.value = error?.response?.data?.message || 'Failed to place order';
+    if (success) {
+      targetPrice.value = '';
+      orderAmount.value = '';
+    }
   } finally {
     orderSubmitting.value = false;
   }
+};
+
+const formatTimeAgo = (dateString?: string): string => {
+  if (!dateString) return '';
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffMs = now.getTime() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMinutes < 1) return 'Just now';
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 </script>
 
@@ -331,14 +389,143 @@ const submitLimitOrder = async () => {
         </button>
 
         <!-- Success Message -->
-        <div v-if="orderSuccess" class="mt-4 p-4 bg-volt-green/10 border border-volt-green text-volt-green font-mono text-sm">
-          ✓ Limit order placed successfully
+        <div v-if="limitOrderStore.successMessage" class="mt-4 p-4 bg-volt-green/10 border border-volt-green text-volt-green font-mono text-sm">
+          ✓ {{ limitOrderStore.successMessage }}
         </div>
 
         <!-- Error Message -->
-        <div v-if="orderError" class="mt-4 p-4 bg-red-500/10 border border-red-500 text-red-500 font-mono text-sm">
-          ✗ {{ orderError }}
+        <div v-if="limitOrderStore.errorMessage" class="mt-4 p-4 bg-red-500/10 border border-red-500 text-red-500 font-mono text-sm">
+          ✗ {{ limitOrderStore.errorMessage }}
         </div>
+      </div>
+
+      <!-- Existing Orders for this coin -->
+      <div v-if="currentSymbolOrders.length > 0" class="mono-card bg-bg-surface overflow-hidden">
+        <div class="p-6 border-b border-border-subtle">
+          <h2 class="text-xl font-extrabold uppercase tracking-wider flex items-center gap-2">
+            <TrendingUp :size="20" class="text-volt-green" />
+            Active Orders — {{ coinData?.symbol }}
+          </h2>
+        </div>
+
+        <table class="table-premium">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Target Price</th>
+              <th>Amount</th>
+              <th>Total Value</th>
+              <th>Created</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="order in currentSymbolOrders"
+              :key="order.id"
+              class="order-row"
+            >
+              <!-- Type -->
+              <td>
+                <span
+                  class="order-type-badge"
+                  :class="order.orderType === 1 ? 'order-type-buy' : 'order-type-sell'"
+                >
+                  <TrendingUp v-if="order.orderType === 1" :size="12" :stroke-width="2.5" class="inline" />
+                  <TrendingDown v-else :size="12" :stroke-width="2.5" class="inline" />
+                  {{ order.orderType === 1 ? 'Buy' : 'Sell' }}
+                </span>
+              </td>
+
+              <!-- Target Price -->
+              <td>
+                <template v-if="editingOrderId === order.id">
+                  <input
+                    v-model="editTargetPrice"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    class="order-edit-input"
+                  />
+                </template>
+                <span v-else class="font-mono text-sm font-bold text-white">
+                  {{ formatCurrency(order.targetPrice) }}
+                </span>
+              </td>
+
+              <!-- Amount -->
+              <td>
+                <template v-if="editingOrderId === order.id">
+                  <input
+                    v-model="editAmount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    class="order-edit-input"
+                  />
+                </template>
+                <span v-else class="font-mono text-sm text-text-secondary">
+                  {{ order.amount }}
+                </span>
+              </td>
+
+              <!-- Total Value -->
+              <td>
+                <span class="font-mono text-sm text-text-secondary">
+                  {{ editingOrderId === order.id
+                    ? formatCurrency(editTargetPrice * editAmount)
+                    : formatCurrency(order.targetPrice * order.amount)
+                  }}
+                </span>
+              </td>
+
+              <!-- Created -->
+              <td>
+                <span class="font-mono text-xs text-text-muted">
+                  {{ formatTimeAgo(order.createdAt) }}
+                </span>
+              </td>
+
+              <!-- Actions -->
+              <td class="text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <template v-if="editingOrderId === order.id">
+                    <button
+                      class="order-action-btn order-save-btn"
+                      @click="saveEdit(order.id)"
+                      title="Save changes"
+                    >
+                      <Check :size="14" :stroke-width="2.5" />
+                    </button>
+                    <button
+                      class="order-action-btn order-cancel-btn"
+                      @click="cancelEdit"
+                      title="Cancel"
+                    >
+                      <X :size="14" :stroke-width="2.5" />
+                    </button>
+                  </template>
+                  <template v-else>
+                    <button
+                      class="order-action-btn order-edit-btn"
+                      @click="startEdit(order)"
+                      title="Edit order"
+                    >
+                      <Pencil :size="14" :stroke-width="2" />
+                    </button>
+                    <button
+                      class="order-action-btn order-delete-btn"
+                      @click="deleteOrder(order.id)"
+                      title="Delete order"
+                    >
+                      <Trash2 :size="14" :stroke-width="2" />
+                    </button>
+                  </template>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- News Section -->
@@ -371,5 +558,81 @@ const submitLimitOrder = async () => {
   0% { opacity: 1; }
   50% { opacity: 0; }
   100% { opacity: 1; }
+}
+
+/* Order table styles */
+.order-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 2px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid transparent;
+}
+
+.order-type-buy {
+  color: var(--accent-1);
+  border-color: var(--accent-1);
+  background: rgba(223, 255, 0, 0.06);
+}
+
+.order-type-sell {
+  color: #f87171;
+  border-color: #f87171;
+  background: rgba(248, 113, 113, 0.06);
+}
+
+.order-edit-input {
+  width: 100px;
+  padding: 4px 8px;
+  background: var(--bg-deep);
+  border: 1px solid var(--accent-1);
+  border-radius: 2px;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.order-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 2px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.order-edit-btn:hover {
+  border-color: var(--accent-1);
+  color: var(--accent-1);
+  background: rgba(223, 255, 0, 0.06);
+}
+
+.order-delete-btn:hover {
+  border-color: #f87171;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.06);
+}
+
+.order-save-btn:hover {
+  border-color: #34d399;
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.06);
+}
+
+.order-cancel-btn:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-secondary);
 }
 </style>

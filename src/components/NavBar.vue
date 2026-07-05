@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router';
-import { computed } from 'vue';
-import { LineChart, Wallet, Bell, LogOut, Hexagon } from 'lucide-vue-next';
+import { computed, onMounted } from 'vue';
+import { LineChart, Wallet, Bell, BellRing, LogOut, Hexagon } from 'lucide-vue-next';
+import NotificationDropdown from '@/components/NotificationDropdown.vue';
+import PriceAlertDropdown from '@/components/PriceAlertDropdown.vue';
+import { useNotificationStore } from '@/stores/notificationStore';
+import { usePriceAlertStore } from '@/stores/priceAlertStore';
 
 const router = useRouter();
 const route = useRoute();
+const notificationStore = useNotificationStore();
+const priceAlertStore = usePriceAlertStore();
 
 const handleLogout = () => {
   localStorage.removeItem('token');
@@ -17,6 +23,17 @@ const navLinks = [
 ];
 
 const userInitial = computed(() => 'U');
+
+const isLoggedIn = computed(() => !!localStorage.getItem('token'));
+
+onMounted(async () => {
+  if (isLoggedIn.value) {
+    await Promise.all([
+      notificationStore.init(),
+      priceAlertStore.init()
+    ]);
+  }
+});
 </script>
 
 <template>
@@ -48,13 +65,42 @@ const userInitial = computed(() => 'U');
       <!-- Right side -->
       <div class="flex items-center space-x-3">
 
-        <!-- Notification Bell -->
-        <div class="tooltip-wrapper">
-          <button class="nav-icon-btn" id="notification-bell">
-            <Bell :size="18" :stroke-width="2" />
-            <span class="notification-dot"></span>
+        <!-- Price Alert Bell -->
+        <div class="notif-bell-wrapper" style="position: relative;">
+          <button
+            class="nav-icon-btn"
+            :class="{ 'nav-icon-btn-active': priceAlertStore.isDropdownOpen }"
+            id="price-alert-bell"
+            @click="priceAlertStore.toggleDropdown"
+          >
+            <BellRing :size="18" :stroke-width="2" />
+            <span
+              v-if="priceAlertStore.activeCount > 0"
+              class="notification-badge alert-badge"
+            >
+              {{ priceAlertStore.activeCount > 99 ? '99+' : priceAlertStore.activeCount }}
+            </span>
           </button>
-          <span class="tooltip-text">Notifications coming soon</span>
+          <PriceAlertDropdown />
+        </div>
+
+        <!-- Notification Bell -->
+        <div class="notif-bell-wrapper" style="position: relative;">
+          <button
+            class="nav-icon-btn"
+            :class="{ 'nav-icon-btn-active': notificationStore.isDropdownOpen }"
+            id="notification-bell"
+            @click="notificationStore.toggleDropdown"
+          >
+            <Bell :size="18" :stroke-width="2" />
+            <span
+              v-if="notificationStore.unreadCount > 0"
+              class="notification-badge"
+            >
+              {{ notificationStore.unreadCount > 99 ? '99+' : notificationStore.unreadCount }}
+            </span>
+          </button>
+          <NotificationDropdown />
         </div>
 
         <!-- Divider -->
@@ -162,14 +208,46 @@ const userInitial = computed(() => 'U');
   border-color: rgba(239, 68, 68, 0.2) !important;
 }
 
-.notification-dot {
+.notification-badge {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 2px;
   background: var(--accent-1);
+  color: #000;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  pointer-events: none;
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(223, 255, 0, 0.3); }
+  50% { box-shadow: 0 0 0 4px rgba(223, 255, 0, 0); }
+}
+
+.nav-icon-btn-active {
+  color: var(--accent-1) !important;
+  background: var(--bg-deep) !important;
+  border-color: var(--accent-1) !important;
+}
+
+.alert-badge {
+  background: #60a5fa !important;
+  animation-name: alertBadgePulse !important;
+}
+
+@keyframes alertBadgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.3); }
+  50% { box-shadow: 0 0 0 4px rgba(96, 165, 250, 0); }
 }
 
 .nav-divider {

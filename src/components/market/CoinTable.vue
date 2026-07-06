@@ -62,7 +62,6 @@ const getMockChange = (symbol: string) => {
             v-for="(coin, index) in coins"
             :key="coin.symbol"
             class="coin-row group transition-colors"
-            :style="{ animationDelay: `${index * 0.04}s` }"
         >
           <td class="font-mono text-text-muted text-sm border-r border-border-subtle">{{ String(index + 1).padStart(3, '0') }}</td>
 
@@ -89,8 +88,8 @@ const getMockChange = (symbol: string) => {
           <td class="font-mono font-bold text-text-secondary">{{ coin.symbol }}</td>
 
           <td class="text-right font-mono font-bold transition-colors duration-500" :class="{
-            'text-volt-green': coin.priceChangeStatus === 'up',
-            'text-red-500': coin.priceChangeStatus === 'down',
+            'text-volt-green price-up-flash': coin.priceChangeStatus === 'up',
+            'text-red-500 price-down-flash': coin.priceChangeStatus === 'down',
             'text-white': !coin.priceChangeStatus || coin.priceChangeStatus === 'none'
           }">
             ${{ coin.currentPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00' }}
@@ -145,8 +144,7 @@ const getMockChange = (symbol: string) => {
 }
 
 .coin-row {
-  animation: fadeInUp 0.3s ease-out forwards;
-  opacity: 0;
+  opacity: 1;
 }
 
 .coin-row:hover .coin-avatar {

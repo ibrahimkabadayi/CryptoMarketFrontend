@@ -5,11 +5,9 @@ class SignalRService{
     private readonly baseUrl: string;
 
     constructor() {
-        // Backend portunuzun gerçekten 5000 olduğundan emin olun (Örn: 5001, 7123 vb. olabilir)
         this.baseUrl = "http://localhost:5000";
     }
 
-    // 1. ADIM: Sadece bağlantı nesnesini oluşturur (Başlatmaz)
     public buildConnection(hubUrl: string, isAuthRequired: boolean = false): void {
         if (this.connections.has(hubUrl)) {
             console.log(`SignalR Connection for ${hubUrl} already exists.`);
@@ -38,7 +36,6 @@ class SignalRService{
         this.connections.set(hubUrl, connection);
     }
 
-    // 2. ADIM: Bağlantıyı başlatır
     public async startConnection(hubUrl?: string): Promise<void> {
         if (hubUrl) {
             const conn = this.connections.get(hubUrl);
@@ -58,7 +55,7 @@ class SignalRService{
             return;
         }
 
-        // Start all if no hubUrl provided (legacy support)
+        // @ts-ignore
         for (const [url, conn] of this.connections.entries()) {
             if (conn.state === signalR.HubConnectionState.Disconnected) {
                 try {
@@ -81,7 +78,6 @@ class SignalRService{
             }
             return;
         }
-        // If hubUrl not specified, register on all (might be what they want if they didn't specify)
         this.connections.forEach(conn => conn.on(eventName, callback));
     }
 
@@ -118,6 +114,7 @@ class SignalRService{
             }
             return;
         }
+        // @ts-ignore
         for (const [url, conn] of this.connections.entries()) {
             await conn.stop();
             console.log(`SignalR Connection for ${url} stopped.`);

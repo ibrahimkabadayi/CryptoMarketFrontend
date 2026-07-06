@@ -244,10 +244,12 @@ const formatTimeAgo = (dateString?: string): string => {
       </div>
     </div>
 
-    <div v-else class="max-w-6xl mx-auto space-y-6 animate-fade-in-up">
+    <div v-else class="max-w-6xl mx-auto space-y-6">
 
       <!-- Header Card -->
-      <div class="mono-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-volt-green">
+      <div 
+        class="mono-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-volt-green transition-colors duration-500 relative overflow-hidden"
+      >
         <div class="flex items-center gap-4">
           <div class="w-14 h-14 border border-volt-green flex items-center justify-center text-xl font-bold bg-bg-deep text-volt-green font-mono">
             {{ coinData?.symbol.charAt(0) }}
@@ -262,8 +264,8 @@ const formatTimeAgo = (dateString?: string): string => {
 
         <div class="md:text-right">
           <div class="text-4xl font-mono font-bold transition-colors duration-500" :class="{
-            'text-volt-green': coinData?.priceChangeStatus === 'up',
-            'text-red-500': coinData?.priceChangeStatus === 'down',
+            'text-volt-green price-up-flash': coinData?.priceChangeStatus === 'up',
+            'text-red-500 price-down-flash': coinData?.priceChangeStatus === 'down',
             'text-white': !coinData?.priceChangeStatus || coinData?.priceChangeStatus === 'none'
           }">
             {{ formatCurrency(coinData?.currentPrice) }}

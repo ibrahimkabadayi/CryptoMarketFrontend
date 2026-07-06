@@ -3,6 +3,7 @@ export interface Coin {
     symbol: string;
     currentPrice: number;
     marketCap: number;
+    isCapped: boolean;
     priceChangeStatus?: 'up' | 'down' | 'none';
 }
 

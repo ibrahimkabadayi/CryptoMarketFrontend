@@ -4,20 +4,23 @@ import { useRoute } from 'vue-router';
 import { useMarketStore } from '@/stores/marketStore';
 import { useLimitOrderStore } from '@/stores/limitOrderStore';
 import { usePortfolioStore } from '@/stores/portfolioStore';
+import { usePriceAlertStore } from '@/stores/priceAlertStore';
 import type { Coin, PriceHistory } from '@/types/marketTypes';
 import type { LimitOrderDto } from '@/types/limitOrderTypes';
 import VueApexCharts from 'vue3-apexcharts';
 import {useMarketNewsStore} from "@/stores/marketNewsStore";
 import NewsList from "@/components/market/NewsList.vue";
-import { Newspaper, TrendingUp, TrendingDown, Pencil, Trash2, Check, X } from 'lucide-vue-next';
+import { Newspaper, TrendingUp, TrendingDown, Pencil, Trash2, Check, X, Bell } from 'lucide-vue-next';
 
 const route = useRoute();
 const marketStore = useMarketStore();
 const marketNewsStore = useMarketNewsStore();
 const limitOrderStore = useLimitOrderStore();
 const portfolioStore = usePortfolioStore();
+const priceAlertStore = usePriceAlertStore();
 
 const isLoading = ref(true);
+const isLoggedIn = computed(() => !!localStorage.getItem('token'));
 const coinData = computed(() => {
   const symbol = String(route.params.symbol);
   return marketStore.coins?.find((c: Coin) => c.symbol === symbol) || null;
@@ -153,6 +156,11 @@ const targetPrice = ref<number | ''>('');
 const orderAmount = ref<number | ''>('');
 const orderSubmitting = ref(false);
 
+// Price Alert State
+const alertDirection = ref<'above' | 'below'>('above');
+const alertPrice = ref<number | ''>('');
+const alertSubmitting = ref(false);
+
 const currentSymbolOrders = computed(() => {
   const symbol = String(route.params.symbol);
   return limitOrderStore.sortedOrders.filter(
@@ -232,6 +240,31 @@ const formatTimeAgo = (dateString?: string): string => {
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+const submitPriceAlert = async () => {
+  if (!alertPrice.value) {
+    priceAlertStore.errorMessage = 'Target price is required';
+    return;
+  }
+
+  alertSubmitting.value = true;
+  priceAlertStore.errorMessage = '';
+
+  try {
+    const success = await priceAlertStore.createAlert(
+      String(route.params.symbol),
+      Number(alertPrice.value),
+      alertDirection.value === 'above'
+    );
+
+    if (success) {
+      alertPrice.value = '';
+      alertDirection.value = 'above';
+    }
+  } finally {
+    alertSubmitting.value = false;
+  }
 };
 </script>
 
@@ -396,6 +429,89 @@ const formatTimeAgo = (dateString?: string): string => {
         <!-- Error Message -->
         <div v-if="limitOrderStore.errorMessage" class="mt-4 p-4 bg-red-500/10 border border-red-500 text-red-500 font-mono text-sm">
           ✗ {{ limitOrderStore.errorMessage }}
+        </div>
+      </div>
+
+      <!-- Price Alert Section -->
+      <div v-if="isLoggedIn" class="mono-card p-6 bg-bg-surface border-l-4 border-volt-green">
+        <h2 class="text-xl font-extrabold mb-6 uppercase tracking-wider flex items-center gap-2">
+          <Bell :size="20" class="text-volt-green" />
+          Set Price Alert
+        </h2>
+
+        <!-- Alert Direction Toggle -->
+        <div class="flex gap-3 mb-6">
+          <button
+            @click="alertDirection = 'above'"
+            class="flex-1 px-6 py-3 font-mono text-sm font-bold uppercase tracking-widest border-2 transition-all"
+            :class="alertDirection === 'above'
+              ? 'bg-volt-green text-black border-volt-green'
+              : 'bg-transparent text-text-secondary border-border-subtle hover:border-volt-green hover:text-white'"
+          >
+            <TrendingUp :size="16" class="inline mr-2" />
+            Alert Above
+          </button>
+          <button
+            @click="alertDirection = 'below'"
+            class="flex-1 px-6 py-3 font-mono text-sm font-bold uppercase tracking-widest border-2 transition-all"
+            :class="alertDirection === 'below'
+              ? 'bg-red-500 text-black border-red-500'
+              : 'bg-transparent text-text-secondary border-border-subtle hover:border-red-500 hover:text-white'"
+          >
+            <TrendingDown :size="16" class="inline mr-2" />
+            Alert Below
+          </button>
+        </div>
+
+        <!-- Alert Form -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label class="label-tech mb-2 block text-text-secondary">Target Price (USD)</label>
+            <input
+              v-model="alertPrice"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              class="w-full px-4 py-3 bg-bg-deep border border-border-subtle text-white font-mono focus:outline-none focus:border-volt-green transition-colors"
+            />
+          </div>
+
+          <div class="flex flex-col justify-end">
+            <p class="text-text-muted text-xs mb-2">Notify me when {{ coinData?.symbol }} is {{ alertDirection === 'above' ? 'above' : 'below' }} target</p>
+          </div>
+        </div>
+
+        <!-- Alert Summary -->
+        <div v-if="alertPrice" class="mb-6 p-4 bg-bg-deep border border-border-subtle">
+          <div class="label-tech mb-2 text-text-secondary">Alert Summary</div>
+          <div class="flex justify-between items-center font-mono text-sm">
+            <span class="text-text-muted">{{ coinData?.symbol }} {{ alertDirection === 'above' ? '▲ Above' : '▼ Below' }}</span>
+            <span class="text-white font-bold">{{ formatCurrency(Number(alertPrice)) }}</span>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          @click="submitPriceAlert"
+          :disabled="alertSubmitting || !alertPrice"
+          class="w-full px-6 py-4 font-mono text-sm font-bold uppercase tracking-widest border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          :class="alertDirection === 'above'
+            ? 'bg-volt-green text-black border-volt-green hover:bg-transparent hover:text-volt-green'
+            : 'bg-red-500 text-black border-red-500 hover:bg-transparent hover:text-red-500'"
+        >
+          <span v-if="alertSubmitting">Processing...</span>
+          <span v-else>Set {{ alertDirection === 'above' ? 'Above' : 'Below' }} Alert</span>
+        </button>
+
+        <!-- Success Message -->
+        <div v-if="priceAlertStore.successMessage" class="mt-4 p-4 bg-volt-green/10 border border-volt-green text-volt-green font-mono text-sm">
+          ✓ {{ priceAlertStore.successMessage }}
+        </div>
+
+        <!-- Error Message -->
+        <div v-if="priceAlertStore.errorMessage" class="mt-4 p-4 bg-red-500/10 border border-red-500 text-red-500 font-mono text-sm">
+          ✗ {{ priceAlertStore.errorMessage }}
         </div>
       </div>
 

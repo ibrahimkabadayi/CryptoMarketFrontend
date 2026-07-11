@@ -10,6 +10,7 @@ export interface Coin {
 export interface PriceUpdateMessage {
     symbol: string;
     price: number;
+    marketCap: number;
 }
 
 export type HistoryUpdateMessage = {

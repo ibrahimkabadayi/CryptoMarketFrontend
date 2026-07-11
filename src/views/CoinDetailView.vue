@@ -32,7 +32,7 @@ const timeframes = [
   { label: '1M', value: '30d' }
 ];
 
-const selectedTimeframe = ref(timeframes[1].value);
+const selectedTimeframe = ref(timeframes[2].value);
 
 const formatCurrency = (value?: number) => {
   if (value === undefined || value === null) return '$0.00';
@@ -45,10 +45,12 @@ const formatCurrency = (value?: number) => {
 };
 
 const chartSeries = computed(() => {
-  const history = marketStore.priceHistories || [];
+  const history = [...(marketStore.priceHistories || [])].sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  );
 
   const formattedData = history.map((item: PriceHistory) => ({
-    x: new Date(item.timestamp),
+    x: new Date(item.timestamp).getTime(),
     y: [item.openPrice, item.highPrice, item.lowPrice, item.closePrice]
   }));
 
@@ -82,6 +84,10 @@ const chartOptions = computed(() => ({
         useFillColor: true
       }
     }
+  },
+  stroke: {
+    width: 2,
+    colors: ['#a1a1aa']
   },
   xaxis: {
     type: 'datetime' as const,

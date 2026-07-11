@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { priceAlertApi } from '@/api/priceAlertApi';
+import { signalRService } from '@/api/signalRApi';
 import type { PriceAlertDto } from '@/types/priceAlertTypes';
 
 function getUserIdFromToken(): string | null {
@@ -29,6 +30,7 @@ export const usePriceAlertStore = defineStore('priceAlert', () => {
     const isLoading = ref(false);
     const isDropdownOpen = ref(false);
     const errorMessage = ref('');
+    const successMessage = ref('');
     const showAllAlerts = ref(false);
 
     const userId = computed(() => getUserIdFromToken());
@@ -65,6 +67,7 @@ export const usePriceAlertStore = defineStore('priceAlert', () => {
     const createAlert = async (symbol: string, targetPrice: number, isAbove: boolean): Promise<boolean> => {
         if (!userId.value) return false;
         errorMessage.value = '';
+        successMessage.value = '';
         try {
             await priceAlertApi.createAlert({
                 userId: userId.value,
@@ -72,6 +75,9 @@ export const usePriceAlertStore = defineStore('priceAlert', () => {
                 targetPrice,
                 isAbove
             });
+
+            successMessage.value = `Price alert set for ${symbol}`;
+            setTimeout(() => { successMessage.value = ''; }, 3000);
 
             await fetchAlerts();
             return true;
@@ -110,9 +116,34 @@ export const usePriceAlertStore = defineStore('priceAlert', () => {
         await fetchAlerts();
     };
 
+    const clearMessages = () => {
+        errorMessage.value = '';
+        successMessage.value = '';
+    };
+
+    const initPriceAlertSignalR = async () => {
+        try {
+            const hubUrl = '/hubs/notifications';
+            signalRService.buildConnection(hubUrl, true);
+
+            // Listen for new price alerts created by the user
+            signalRService.on('ReceivePriceAlert', (alert: PriceAlertDto) => {
+                // Add the new alert to the list if it doesn't already exist
+                if (!alerts.value.find(a => a.id === alert.id)) {
+                    alerts.value.unshift(alert);
+                }
+            }, hubUrl);
+
+            await signalRService.startConnection(hubUrl);
+        } catch (error) {
+            console.error('Failed to initialize price alert SignalR:', error);
+        }
+    };
+
     const init = async () => {
         if (!userId.value) return;
         await fetchAlerts();
+        await initPriceAlertSignalR();
     };
 
     return {
@@ -123,6 +154,7 @@ export const usePriceAlertStore = defineStore('priceAlert', () => {
         isLoading,
         isDropdownOpen,
         errorMessage,
+        successMessage,
         showAllAlerts,
         userId,
         fetchAlerts,
@@ -131,6 +163,8 @@ export const usePriceAlertStore = defineStore('priceAlert', () => {
         toggleDropdown,
         closeDropdown,
         toggleShowAll,
+        clearMessages,
+        initPriceAlertSignalR,
         init
     };
 });

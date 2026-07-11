@@ -7,16 +7,16 @@ import type { NotificationDto } from '@/types/notificationTypes';
 const store = useNotificationStore();
 const dropdownRef = ref<HTMLElement | null>(null);
 
-const getTypeIcon = (type: string) => {
-  const t = type?.toLowerCase();
+const getTypeIcon = (type: any) => {
+  const t = typeof type === 'string' ? type.toLowerCase() : String(type || '').toLowerCase();
   if (t === 'warning' || t === 'alert') return AlertTriangle;
   if (t === 'success') return CircleCheck;
   if (t === 'announcement') return Megaphone;
   return Info;
 };
 
-const getTypeColor = (type: string) => {
-  const t = type?.toLowerCase();
+const getTypeColor = (type: any) => {
+  const t = typeof type === 'string' ? type.toLowerCase() : String(type || '').toLowerCase();
   if (t === 'warning' || t === 'alert') return '#f87171';
   if (t === 'success') return '#34d399';
   if (t === 'announcement') return '#DFFF00';

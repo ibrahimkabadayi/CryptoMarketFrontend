@@ -14,23 +14,32 @@ class SignalRService{
             return;
         }
 
+        const token = localStorage.getItem('token');
         const options: signalR.IHttpConnectionOptions = {
             headers: { 'Idempotency-Key': crypto.randomUUID() },
             skipNegotiation: false,
             transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling
         };
 
-        if (isAuthRequired) {
-            options.accessTokenFactory = () => localStorage.getItem('token') || "";
+        if (isAuthRequired && token) {
+            options.accessTokenFactory = () => token;
         }
 
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(this.baseUrl + hubUrl, options)
-            .withAutomaticReconnect()
+            .withAutomaticReconnect([0, 0, 1000, 3000, 5000, 10000])
             .build();
 
         connection.onclose((error) => {
             console.warn(`SignalR Connection closed for ${hubUrl}: `, error);
+        });
+
+        connection.onreconnecting((error) => {
+            console.warn(`SignalR Reconnecting to ${hubUrl}: `, error);
+        });
+
+        connection.onreconnected((connectionId) => {
+            console.log(`SignalR Reconnected to ${hubUrl} with connection ID: ${connectionId}`);
         });
 
         this.connections.set(hubUrl, connection);

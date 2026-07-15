@@ -309,8 +309,10 @@ const submitPriceAlert = async () => {
           }">
             {{ formatCurrency(coinData?.currentPrice) }}
           </div>
-          <div class="stat-badge positive mt-2 inline-flex items-center gap-1">
-            <span>▲</span> <span>2.45%</span>
+          <div class="stat-badge mt-2 inline-flex items-center gap-1" :class="coinData?.percentChange >= 0 ? 'positive' : 'negative'">
+            <TrendingUp v-if="coinData?.percentChange >= 0" :size="14" />
+            <TrendingDown v-else :size="14" />
+            <span>{{ coinData?.percentChange >= 0 ? '+' : '' }}{{ coinData?.percentChange?.toFixed(2) }}%</span>
           </div>
         </div>
       </div>

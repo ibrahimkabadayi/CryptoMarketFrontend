@@ -55,6 +55,7 @@ export const useMarketStore = defineStore('market', () => {
             const incomingSymbol = updateInfo.symbol;
             const incomingPrice = updateInfo.price;
             const incomingMarketCap = updateInfo.marketCap;
+            const incomingPercentChange = updateInfo.percentChange;
 
             if (!incomingSymbol) {
                 console.error("SignalR Update Missing Symbol:", updateInfo);
@@ -73,6 +74,7 @@ export const useMarketStore = defineStore('market', () => {
                 coins.value[index] = {
                     ...coins.value[index],
                     currentPrice: incomingPrice,
+                    percentChange: incomingPercentChange,
                     marketCap: incomingMarketCap,
                     priceChangeStatus: status
                 };

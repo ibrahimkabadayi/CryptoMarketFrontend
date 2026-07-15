@@ -22,14 +22,6 @@ const getSymbolColor = (symbol: string) => {
   return colors[Math.abs(hash) % colors.length];
 };
 
-const getMockChange = (symbol: string) => {
-  let hash = 0;
-  for (let i = 0; i < symbol.length; i++) {
-    hash = symbol.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const val = ((Math.abs(hash) % 1500) - 500) / 100;
-  return val;
-};
 </script>
 
 <template>
@@ -96,10 +88,10 @@ const getMockChange = (symbol: string) => {
           </td>
 
           <td class="text-right">
-            <span class="stat-badge" :class="getMockChange(coin.symbol) >= 0 ? 'positive' : 'negative'">
-              <TrendingUp v-if="getMockChange(coin.symbol) >= 0" :size="12" class="mr-1" />
+            <span class="stat-badge" :class="coin.percentChange >= 0 ? 'positive' : 'negative'">
+              <TrendingUp v-if="coin.percentChange >= 0" :size="12" class="mr-1" />
               <TrendingDown v-else :size="12" class="mr-1" />
-              {{ getMockChange(coin.symbol) >= 0 ? '+' : '' }}{{ getMockChange(coin.symbol).toFixed(2) }}%
+              {{ coin.percentChange >= 0 ? '+' : '' }}{{ coin.percentChange?.toFixed(2) }}%
             </span>
           </td>
 

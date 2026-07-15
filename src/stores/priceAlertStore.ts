@@ -134,6 +134,12 @@ export const usePriceAlertStore = defineStore('priceAlert', () => {
                 }
             }, hubUrl);
 
+            signalRService.on('DeactivatePriceAlert', (priceAlertId: string )=> {
+               if (priceAlertId) {
+                   activeAlerts.value.filter(x => x.id !== priceAlertId);
+               }
+            })
+
             await signalRService.startConnection(hubUrl);
         } catch (error) {
             console.error('Failed to initialize price alert SignalR:', error);

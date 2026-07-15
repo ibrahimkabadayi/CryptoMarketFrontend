@@ -2,6 +2,7 @@ export interface Coin {
     name: string;
     symbol: string;
     currentPrice: number;
+    percentChange: number;
     marketCap: number;
     isCapped: boolean;
     priceChangeStatus?: 'up' | 'down' | 'none';
@@ -11,6 +12,7 @@ export interface PriceUpdateMessage {
     symbol: string;
     price: number;
     marketCap: number;
+    percentChange: number;
 }
 
 export type HistoryUpdateMessage = {

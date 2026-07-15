@@ -55,19 +55,23 @@ const getSymbolColor = (symbol: string) => {
             :key="coin.symbol"
             class="coin-row group transition-colors"
         >
-          <td class="font-mono text-text-muted text-sm border-r border-border-subtle">{{ String(index + 1).padStart(3, '0') }}</td>
+          <td class="font-mono text-text-muted text-sm border-r border-border-subtle">
+            <img v-if="coin.iconUrlPng" :src="coin.iconUrlPng" class="w-6 h-6 mx-auto" :alt="coin.symbol" />
+            <span v-else>{{ String(index + 1).padStart(3, '0') }}</span>
+          </td>
 
           <td>
             <div class="flex items-center space-x-3">
               <div
-                  class="coin-avatar flex items-center justify-center font-mono font-bold text-sm"
+                  class="coin-avatar flex items-center justify-center font-mono font-bold text-sm overflow-hidden"
                   :style="{
                     background: getSymbolColor(coin.symbol).bg,
                     borderColor: getSymbolColor(coin.symbol).border,
                     color: getSymbolColor(coin.symbol).text
                   }"
               >
-                {{ coin.symbol.charAt(0) }}
+                <img v-if="coin.iconUrlPng" :src="coin.iconUrlPng" class="w-full h-full object-cover" :alt="coin.symbol" />
+                <span v-else>{{ coin.symbol.charAt(0) }}</span>
               </div>
               <span class="font-bold text-white uppercase">
                 <router-link :to="{ name: 'coin-detail', params: { symbol: coin.symbol } }" class="hover:text-volt-green transition-colors">

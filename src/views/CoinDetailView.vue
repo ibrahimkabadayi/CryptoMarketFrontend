@@ -290,8 +290,9 @@ const submitPriceAlert = async () => {
         class="mono-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-volt-green transition-colors duration-500 relative overflow-hidden"
       >
         <div class="flex items-center gap-4">
-          <div class="w-14 h-14 border border-volt-green flex items-center justify-center text-xl font-bold bg-bg-deep text-volt-green font-mono">
-            {{ coinData?.symbol.charAt(0) }}
+          <div class="w-14 h-14 border border-volt-green flex items-center justify-center text-xl font-bold bg-bg-deep text-volt-green font-mono overflow-hidden">
+            <img v-if="coinData?.iconUrlPng" :src="coinData.iconUrlPng" class="w-full h-full object-cover" :alt="coinData.symbol" />
+            <span v-else>{{ coinData?.symbol.charAt(0) }}</span>
           </div>
           <div>
             <h1 class="text-3xl font-extrabold uppercase">{{ coinData?.name }}</h1>

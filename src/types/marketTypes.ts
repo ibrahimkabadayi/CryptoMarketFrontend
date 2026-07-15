@@ -5,6 +5,7 @@ export interface Coin {
     percentChange: number;
     marketCap: number;
     isCapped: boolean;
+    iconUrlPng: string;
     priceChangeStatus?: 'up' | 'down' | 'none';
 }
 

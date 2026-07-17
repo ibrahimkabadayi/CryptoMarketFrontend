@@ -9,7 +9,7 @@ defineProps<{
 const getTransactionTypeName = (type: number | string) => {
   const types = ['Sell', 'Buy', 'Transfer', 'Deposit', 'Withdraw'];
   if (typeof type === 'number' && type >= 0 && type < types.length) return types[type];
-  return String(type).charAt(0).toUpperCase() + String(type).slice(1);
+  return String(type).charAt(0).toLocaleUpperCase('en-US') + String(type).slice(1);
 };
 
 const getTransactionStyle = (type: number | string) => {
@@ -59,7 +59,7 @@ const getTransactionIcon = (type: number | string) => {
               <ArrowUpRight v-else-if="getTransactionIcon(tx.transactionType)==='sell'||getTransactionIcon(tx.transactionType)==='withdraw'" :size="14" />
               <!-- Transfer arrows -->
               <ArrowRightLeft v-else :size="14" />
-              {{ getTransactionTypeName(tx.transactionType).toUpperCase() }}
+              {{ getTransactionTypeName(tx.transactionType).toLocaleUpperCase('en-US') }}
             </span>
           </td>
           <td class="font-bold text-white">{{ tx.symbol }}</td>

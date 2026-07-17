@@ -49,13 +49,13 @@ const handleCreateAlert = async () => {
 
   isSubmitting.value = true;
   const success = await store.createAlert(
-    newSymbol.value.toUpperCase(),
+    newSymbol.value.toLocaleUpperCase('en-US'),
     Number(newTargetPrice.value),
     newIsAbove.value
   );
 
   if (success) {
-    successMessage.value = `Alert set for ${newSymbol.value.toUpperCase()}`;
+    successMessage.value = `Alert set for ${newSymbol.value.toLocaleUpperCase('en-US')}`;
     newSymbol.value = '';
     newTargetPrice.value = '';
     newIsAbove.value = true;

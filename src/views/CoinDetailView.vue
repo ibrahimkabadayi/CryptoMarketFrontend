@@ -176,7 +176,7 @@ const alertSubmitting = ref(false);
 const currentSymbolOrders = computed(() => {
   const symbol = String(route.params.symbol);
   return limitOrderStore.sortedOrders.filter(
-    o => o.symbol?.toUpperCase() === symbol.toUpperCase()
+    o => o.symbol?.toLocaleUpperCase('en-US') === symbol.toLocaleUpperCase('en-US')
   );
 });
 

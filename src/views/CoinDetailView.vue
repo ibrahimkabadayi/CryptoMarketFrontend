@@ -60,6 +60,12 @@ const chartSeries = computed(() => {
   }];
 });
 
+// Resolve icon URL: prefer explicit IconUrlPng/iconUrlPng, fall back to spothq repo by symbol
+const resolveIconUrl = (c?: Coin | null) => {
+  if (!c) return '';
+  return c.iconUrlPng ?? c.IconUrlPng ?? `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/${c.symbol.toLowerCase()}.png`;
+};
+
 const chartOptions = computed(() => ({
   chart: {
     type: 'candlestick' as const,
@@ -291,7 +297,7 @@ const submitPriceAlert = async () => {
       >
         <div class="flex items-center gap-4">
           <div class="w-14 h-14 border border-volt-green flex items-center justify-center text-xl font-bold bg-bg-deep text-volt-green font-mono overflow-hidden">
-            <img v-if="coinData?.iconUrlPng" :src="coinData.iconUrlPng" class="w-full h-full object-cover" :alt="coinData.symbol" />
+            <img v-if="resolveIconUrl(coinData)" :src="resolveIconUrl(coinData)" class="w-full h-full object-cover" :alt="coinData?.symbol" />
             <span v-else>{{ coinData?.symbol.charAt(0) }}</span>
           </div>
           <div>

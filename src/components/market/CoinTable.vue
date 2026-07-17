@@ -22,6 +22,12 @@ const getSymbolColor = (symbol: string) => {
   return colors[Math.abs(hash) % colors.length];
 };
 
+// Resolve icon URL: prefer explicit IconUrlPng/iconUrlPng, fall back to spothq repo by symbol
+const getIconUrl = (coin: Coin) => {
+  if (!coin) return '';
+  return coin.iconUrlPng ?? coin.IconUrlPng ?? `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/${coin.symbol.toLowerCase()}.png`;
+};
+
 </script>
 
 <template>
@@ -56,7 +62,7 @@ const getSymbolColor = (symbol: string) => {
             class="coin-row group transition-colors"
         >
           <td class="font-mono text-text-muted text-sm border-r border-border-subtle">
-            <img v-if="coin.iconUrlPng" :src="coin.iconUrlPng" class="w-6 h-6 mx-auto" :alt="coin.symbol" />
+            <img v-if="getIconUrl(coin)" :src="getIconUrl(coin)" class="w-6 h-6 mx-auto" :alt="coin.symbol" />
             <span v-else>{{ String(index + 1).padStart(3, '0') }}</span>
           </td>
 
@@ -70,7 +76,7 @@ const getSymbolColor = (symbol: string) => {
                     color: getSymbolColor(coin.symbol).text
                   }"
               >
-                <img v-if="coin.iconUrlPng" :src="coin.iconUrlPng" class="w-full h-full object-cover" :alt="coin.symbol" />
+                <img v-if="getIconUrl(coin)" :src="getIconUrl(coin)" class="w-full h-full object-cover" :alt="coin.symbol" />
                 <span v-else>{{ coin.symbol.charAt(0) }}</span>
               </div>
               <span class="font-bold text-white uppercase">

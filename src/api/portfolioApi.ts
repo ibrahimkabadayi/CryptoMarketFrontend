@@ -4,7 +4,7 @@ import {Coin} from "@/types/marketTypes";
 
 export const portfolioApi = {
     getDashboard: async() => {
-        const response = await apiClient.get<any>("/api/wallets");
+        const response = await apiClient.get<any>("api/wallet");
 
         const data = response.data.result;
 
@@ -18,48 +18,48 @@ export const portfolioApi = {
         } as Dashboard;
     },
 
-    deposit: async (walletId: string, amount: number) => {
+    deposit: async (amount: number) => {
         try {
             const request = {
                 amount: amount
             };
 
-            const response = await apiClient.post(`api/wallets/${walletId}/transaction`, request, getFinancialHeaders());
+            const response = await apiClient.post('api/wallet/deposits', request, getFinancialHeaders());
             return response.data;
         }catch (error) {
             console.error(error);
         }
     },
 
-    withdraw: async (walletId: string, amount: number) => {
+    withdraw: async (amount: number) => {
         try {
             const request = {
                 amount: amount
             };
 
-            const response = await apiClient.patch(`api/wallets/${walletId}` , request, getFinancialHeaders());
+            const response = await apiClient.post('api/wallet/withdrawals', request, getFinancialHeaders());
             return response.data;
         }catch (error) {
             console.error(error);
         }
     },
 
-    buyCoin: async (walletId: string, quantity: number, coin: Coin) => {
+    buyCoin: async (quantity: number, coin: Coin) => {
         const request = {
             amount: quantity,
             buyingPrice: coin.currentPrice
         }
 
-        await apiClient.post(`/api/wallets/${walletId}/assets/${coin.symbol}`, request, getFinancialHeaders());
+        await apiClient.post(`api/wallet/assets/${coin.symbol}/purchases`, request, getFinancialHeaders());
     },
 
-    sellCoin: async (walletId: string, amount: number, coin: Coin) => {
+    sellCoin: async (amount: number, coin: Coin) => {
         const request = {
             amount: amount,
             price: coin.currentPrice
         }
 
-        await apiClient.patch(`/api/wallets/${walletId}/assets/${coin.symbol}`, request, getFinancialHeaders());
+        await apiClient.post(`api/wallet/assets/${coin.symbol}/sales`, request, getFinancialHeaders());
     },
 }
 

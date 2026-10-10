@@ -25,7 +25,7 @@ export const usePortfolioStore = defineStore('portfolio', () => {
 
     const deposit = async (amount: number) => {
         try {
-            const response = await portfolioApi.deposit(dashboard.value.walletId, amount);
+            const response = await portfolioApi.deposit(amount);
             console.log(response);
         } catch (error) {
             console.error(error);
@@ -35,7 +35,7 @@ export const usePortfolioStore = defineStore('portfolio', () => {
 
     const withdraw = async (amount: number) => {
         try {
-            const response = await portfolioApi.withdraw(dashboard.value.walletId, amount);
+            const response = await portfolioApi.withdraw(amount);
             console.log(response);
         } catch (error) {
             console.error(error);
@@ -46,7 +46,7 @@ export const usePortfolioStore = defineStore('portfolio', () => {
     const buyCoin = async (symbol: string, quantity: number) => {
         try {
             const coin = marketStore.coins.find(x => x.symbol === symbol);
-            await portfolioApi.buyCoin(dashboard.value.walletId, quantity, coin);
+            await portfolioApi.buyCoin(quantity, coin);
         } catch (error) {
             console.error(error);
             errorMessage.value = error.message;
@@ -56,7 +56,7 @@ export const usePortfolioStore = defineStore('portfolio', () => {
     const sellCoin = async (symbol: string, quantity: number) => {
         try {
             const coin = marketStore.coins.find(x => x.symbol === symbol);
-            await portfolioApi.sellCoin(dashboard.value.walletId, quantity, coin);
+            await portfolioApi.sellCoin(quantity, coin);
         } catch (error) {
             console.error(error);
             errorMessage.value = error.message;

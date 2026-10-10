@@ -47,7 +47,7 @@ export const useNotificationStore = defineStore('notification', () => {
         if (!userId.value) return;
         isLoading.value = true;
         try {
-            notifications.value = await notificationApi.getUserNotifications(userId.value);
+            notifications.value = await notificationApi.getUserNotifications();
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
         } finally {
@@ -58,7 +58,7 @@ export const useNotificationStore = defineStore('notification', () => {
     const fetchUnreadCount = async () => {
         if (!userId.value) return;
         try {
-            unreadCount.value = await notificationApi.getUnreadCount(userId.value);
+            unreadCount.value = await notificationApi.getUnreadCount();
         } catch (error) {
             console.error('Failed to fetch unread count:', error);
         }
@@ -67,7 +67,7 @@ export const useNotificationStore = defineStore('notification', () => {
     const markAsRead = async (notificationId: string) => {
         if (!userId.value) return;
         try {
-            await notificationApi.markAsRead(notificationId, userId.value);
+            await notificationApi.markAsRead(notificationId);
 
             const notification = notifications.value.find(n => n.id === notificationId);
             if (notification && !notification.isRead) {
@@ -82,7 +82,7 @@ export const useNotificationStore = defineStore('notification', () => {
     const markAllAsRead = async () => {
         if (!userId.value) return;
         try {
-            await notificationApi.markAllAsRead(userId.value);
+            await notificationApi.markAllAsRead();
 
             notifications.value.forEach(n => (n.isRead = true));
             unreadCount.value = 0;

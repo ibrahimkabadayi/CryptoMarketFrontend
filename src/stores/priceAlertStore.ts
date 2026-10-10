@@ -53,9 +53,9 @@ export const usePriceAlertStore = defineStore('priceAlert', () => {
         errorMessage.value = '';
         try {
             if (showAllAlerts.value) {
-                alerts.value = await priceAlertApi.getAllAlerts(userId.value);
+                alerts.value = await priceAlertApi.getAllAlerts();
             } else {
-                alerts.value = await priceAlertApi.getActiveAlerts(userId.value);
+                alerts.value = await priceAlertApi.getActiveAlerts();
             }
         } catch (error) {
             console.error('Failed to fetch price alerts:', error);
@@ -91,7 +91,7 @@ export const usePriceAlertStore = defineStore('priceAlert', () => {
     const deactivateAlert = async (alertId: string) => {
         if (!userId.value) return;
         try {
-            await priceAlertApi.deactivateAlert(alertId, userId.value);
+            await priceAlertApi.deactivateAlert(alertId);
 
             const alert = alerts.value.find(a => a.id === alertId);
             if (alert) {

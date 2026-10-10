@@ -7,19 +7,17 @@ export const priceAlertApi = {
         return response.data;
     },
 
-    getActiveAlerts: async (userId: string): Promise<PriceAlertDto[]> => {
-        const response = await apiClient.get<PriceAlertDto[]>(`api/price-alerts/user/${userId}/active`);
+    getActiveAlerts: async (): Promise<PriceAlertDto[]> => {
+        const response = await apiClient.get<PriceAlertDto[]>('api/price-alerts/active');
         return response.data;
     },
 
-    getAllAlerts: async (userId: string): Promise<PriceAlertDto[]> => {
-        const response = await apiClient.get<PriceAlertDto[]>(`api/price-alerts/user/${userId}/all`);
+    getAllAlerts: async (): Promise<PriceAlertDto[]> => {
+        const response = await apiClient.get<PriceAlertDto[]>('api/price-alerts/all');
         return response.data;
     },
 
-    deactivateAlert: async (alertId: string, userId: string): Promise<void> => {
-        await apiClient.put(`api/price-alerts/${alertId}/deactivate`, JSON.stringify(userId), {
-            headers: { 'Content-Type': 'application/json' }
-        });
+    deactivateAlert: async (alertId: string): Promise<void> => {
+        await apiClient.put(`api/price-alerts/${alertId}/deactivate`);
     }
 };
